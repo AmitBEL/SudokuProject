@@ -3,19 +3,15 @@
 
 #include "Auxilary.h"
 
-Cell **board;
-
-Moves *movesList;
-
-int mark_errors=0;
+struct {int m; int n;} Dim;
 
 Cell* getCell(int x, int y);
 
-void solve(char* filepath); // change void to boolean
+bool solve(char* filepath);
 
-void editNew(); // change void to boolean
+bool editNew();
 
-void editFile(char* filepath); // change void to boolean
+bool editFile(char* filepath);
 
 void load(char* filepath);
 
@@ -23,15 +19,17 @@ void markErrors(int mark);
 
 void printBoard();
 
-void set(int x, int y, int z); // change void to boolean
+bool set(int x, int y, int z);
 
 void updateCollisions(int x, int y, int z, int num);
 
 void calcCollisions(int x, int y, int z);
 
-void validate(); // change void to boolean
+void validate(); /* change void to boolean */
 
 void guess(float threshold);
+
+void generate(int x, int y);
 
 void undo();
 
@@ -43,12 +41,16 @@ void hint(int x, int y);
 
 void guessHint(int x, int y);
 
-void numSolution();
+int numSolution();
 
 void autoFill();
 
 void reset();
 
-void exit();
+void Exit();
+
+void EnableMarkErrors();
+
+void DisableMarkErrors();
 
 #endif
