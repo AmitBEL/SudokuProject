@@ -1,7 +1,12 @@
 #ifndef GAME_H_
 #define GAME_H_
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <Math.h>
 #include "Auxilary.h"
+#define MAX_FIRST_LINE_LENGTH 10
 
 struct {int m; int n;} Dim;
 
@@ -13,7 +18,7 @@ bool editNew();
 
 bool editFile(char* filepath);
 
-void load(char* filepath);
+bool load(char* filepath);
 
 void markErrors(int mark);
 
@@ -25,17 +30,19 @@ void updateCollisions(int x, int y, int z, int num);
 
 void calcCollisions(int x, int y, int z);
 
-void validate(); /* change void to boolean */
+bool validate();
+
+bool isErroneous();
 
 void guess(float threshold);
 
-void generate(int x, int y);
+int generate(int x, int y);
 
-void undo();
+bool undo();
 
-void redo();
+bool redo();
 
-void save(char* filepath);
+bool save(char* filepath, Mode mode);
 
 void hint(int x, int y);
 
@@ -49,8 +56,12 @@ void reset();
 
 void Exit();
 
+Cell* boardCellAccess(int x, int y);
+
 void EnableMarkErrors();
 
 void DisableMarkErrors();
+
+int numOfEmptyCells();
 
 #endif

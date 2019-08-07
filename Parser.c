@@ -1,22 +1,18 @@
 #include "Parser.h"
 
-bool DetermineEdit(char* optional) {
+bool EditType(char* optional) {
 	return (optional == NULL ? editNew() : editFile(optional));
 }
 
-/* return true iff value is legal value (i.e. 0/1)
- * no using of atoi because it returns 0 if conversion failed */
-bool SetMarkErrors(char* value) {
-	if (value != NULL) {
-		if (strcmp(value, "1") == 0) {
-			EnableMarkErrors();
-			return true;
-		} else if (strcmp(value, "0") == 0) {
-			DisableMarkErrors();
-			return true;
-		}
+/*
+ * pre-cond: mode==Solve && (value=="1" || value=="0")
+ */
+void UpdateMarkErrors(char* value) {
+	if (strcmp(value, "1") == 0) {
+		EnableMarkErrors();
+	} else if (strcmp(value, "0") == 0) {
+		DisableMarkErrors();
 	}
-	return false;
 }
 
 /*
@@ -27,235 +23,438 @@ bool isNumInRange(int num, int minNum, int maxNum) {
 	return (minNum <= num && num <= maxNum);
 }
 
-/*
- * this enum and printErrorAndExit can be moved to another header file for using along with Game.h
- */
-typedef enum ErrorMsg {
-	InvalidCommand, IndexOutOfBounds, TooLongInput, FunctionFailed, MemoryAllocFailed
-} ErrorMsg;
-
-void printErrorAndExit(ErrorMsg err, char* param1, int bound1, int bound2) {
-	printf("Error: ");
-	if (err==InvalidCommand)
-		printf("Invalid Command");
-	else if (err==IndexOutOfBounds)
-		printf("Parameter Out Of Bounds. Bounds: %d-%d", bound1, bound2);
-	else if(err==TooLongInput)
-		printf("Max Number Of Characters: %d", MAX_INPUT_CHARS);
-	else if (err==FunctionFailed)
-		printf("Function %s Has Failed", param1);
-	else if (err==MemoryAllocFailed)
-		printf("Memory Allocation Failed");
-	else
-		printf("No Data About Error Found");
-	printf("\n");
-	exit(0);
-}
-
 Mode getCommand(Mode mode) {
 	char input[MAX_INPUT_CHARS];
-	char *fgetsRetVal, *token;
+	char delimiter[]=" \t\r";
+	char *fgetsRetVal, *p, *token, *param1, *param2, *param3, *param4;
 	int x, y, z, numOfSuccessfulScan;
 	double xDouble;
-	char *p = input;
+	Cell* cell;
 
 	/* handle user input */
 	/* notes:
-	 * how to validate that input is 256 chars at most?
-	 * how to handle whitespaces?
+	 * need to print board as in page 4!
+	 * after printing board, read another command as in page 4!
 	 */
-	fflush(stdin); /* not sure it's necessary */
-	fgetsRetVal = fgets(input, sizeof(input), stdin);
 
-	for (; *p; ++p)
+	/*
+	 * read a coammnd from the user, each line is command
+	 * command with more than 256 chars are invalid
+	 * "sAvE"=="save"
+	 * consider EOF as "exit"
+	 * ignore empty command (also empty lines, because each line is command)
+	 */
+	fgetsRetVal = fgets(input, MAX_INPUT_CHARS, stdin);
+
+	if (input[MAX_INPUT_CHARS-2]!='\n' || input[MAX_INPUT_CHARS-2]!='\0'){ /* ensure command length <= 256 chars */
+		printError(TooLongInput, NULL, 0, 0);
+		return mode;
+	}
+
+	for (p=input; *p; ++p)
 		*p = tolower(*p); /* lowercase input */
 
 	if (fgetsRetVal != NULL) {
-		token = strtok(input, " \t\r\n");
+		token = strtok(input, delimiter);
 	} else {
 		if (feof(stdin)) /* treat EOF like "exit" */
 			token = "exit";
 		else if (ferror(stdin)) { /* treat error in user input, change later */
-			printErrorAndExit(FunctionFailed, "fgets", 0, 0);
+			printError(FunctionFailed, "fgets", 0, 0);
+			return mode;
 		}
 	}
-	if (token == NULL) /* no tokens in input, maybe whitespaces */
-		exit(0); /* change later */
+	if (token == NULL) /* no tokens in input means white-spaces so ignore */
+		return mode;
 
 	/* call appropriate function */
+
+	/*****************************
+When several errors exist for the same command, follow this order:
+1. Command name is correct (otherwise it is an invalid command)
+2. Command has the correct number of parameters
+3. Parameters are correct. Report any error of parameter 1 before parameter 2, etc.
+   For each parameter:
+      a. It is in the correct range for the command
+      b. Its value is legal for the current board state
+4. The board is valid for the command (e.g., the board is not erroneous for "autofill").
+5. The command is executed successfully (e.g., "save" command fails writing to the file)
+
+notes for myself:
+1. if fgets in load fails this error belongs to parameter 5
+2. no need to check validity of path (when exists, if not exists it's an error)
+3. check number of parameters
+	 *****************************/
+
+	param1=strtok(NULL, delimiter);
+	param2=strtok(NULL, delimiter);
+	param3=strtok(NULL, delimiter);
+	param4=strtok(NULL, delimiter);
 	/* here "command=NULL" means invalid parameters/unavailable command */
-	if (strcmp(token, "solve") == 0) {
-		if (solve(strtok(NULL, " \t\r\n"))) /* assumption: change to new game iff new game loading succeeded */
+
+	/* check if (correct num of param +1)!=NULL to determine if there are too many parameters
+	 * for example, if (correct num of param)=1 and (param1==NULL || (param1!=NULL && param2!=NULL)),
+	 * it means that:
+	 *     a. param1 has not assigned, thus num of params is 0
+	 *     b. param1 has assigned before param2, thus num of params is at least 2
+	 *        (because this is how strtok works. otherwise: param1!=NULL && param2==NULL, thus num of
+	 *        params is 2)
+	 */
+
+	if (strcmp(token, "solve") == 0) {/*1*/
+		if (param1==NULL || (param1!=NULL && param2!=NULL)){
+			printError(WrongNumOfParams, NULL,1,0);
+			return mode;
+		}
+		if (solve(param1)) /* assumption: change to new game iff new game loading succeeded */
 			return Solve;
-		printErrorAndExit(InvalidCommand,0,0,0);
-	} else if (strcmp(token, "edit")==0) {
-		DetermineEdit(strtok(NULL, " \t\r\n"));
-		return Edit;
-	} else if (strcmp(token, "mark_errors")==0) {
-		if (mode == Solve && SetMarkErrors(strtok(NULL, " \t\r\n")) == true) /* next argument is not 0/1 */
-			return mode;
-		printErrorAndExit(InvalidCommand,0,0,0);
-	} else if (strcmp(token, "print_board")==0) {
-		if (mode == Solve || mode == Edit) {
-			printBoard();
+		printError(CommandFailed,NULL,0,0);
+		return mode;
+	} else if (strcmp(token, "edit")==0) {/*2*/
+		if (param1!=NULL && param2!=NULL){ /* has 0/1 params */
+			printError(WrongNumOfParamsBounds, NULL,0,1);
 			return mode;
 		}
-		printErrorAndExit(InvalidCommand,0,0,0);
-	} else if (strcmp(token, "set")==0) {
-		if (mode == Solve || mode == Edit) {
-			token = strtok(NULL, " \t\r\n");
-			if (token != NULL) {
-				numOfSuccessfulScan = sscanf(token, "%d", &x);
-				if (numOfSuccessfulScan == 1 && isNumInRange(x, 1, Dim.m * Dim.n)) {
-					token = strtok(NULL, " \t\r\n");
-					if (token != NULL) {
-						numOfSuccessfulScan = sscanf(token, "%d", &y);
-						if (numOfSuccessfulScan == 1 && isNumInRange(y, 1, Dim.m * Dim.n)) {
-							token = strtok(NULL, " \t\r\n");
-							if (token != NULL) {
-								numOfSuccessfulScan = sscanf(token, "%d", &z);
-								if (numOfSuccessfulScan == 1) {
-									if (set(x, y, z)) /* board solved */
-										return Init;
-									else
-										return mode;
-								}
-							}
-							printErrorAndExit(InvalidCommand,0,0,0);
-						}
-						printErrorAndExit(IndexOutOfBounds,0,1, Dim.m * Dim.n);
-					}
-					printErrorAndExit(InvalidCommand,0,0,0);
-				}
-				printErrorAndExit(IndexOutOfBounds,0,1, Dim.m * Dim.n);
+		if (EditType(param1))
+			return Edit;
+		printError(CommandFailed,NULL,0,0);
+		return mode;
+	} else if (strcmp(token, "mark_errors")==0) {/*3*/
+		if (mode==Solve){
+			if (param1 ==NULL || (param1!=NULL && param2!=NULL)){
+				printError(WrongNumOfParams, NULL,1,0);
+				return mode;
 			}
-		}
-		printErrorAndExit(InvalidCommand,0,0,0);
-	} else if (strcmp(token, "validate")==0) {
-		if (mode == Solve || mode == Edit) {
-			validate();
+			if (strcmp(param1, "1") == 0 || strcmp(param1, "0") == 0) {
+				UpdateMarkErrors(param1);
+				return mode;
+			}
+			printError(IndexOutOfBounds, NULL, 0, 1);
 			return mode;
 		}
-		printErrorAndExit(InvalidCommand,0,0,0);
-	} else if (strcmp(token, "guess")==0) {
-		if (mode == Solve) {
-			token = strtok(NULL, " \t\r\n");
-			if (token != NULL) {
-				numOfSuccessfulScan = sscanf(token, "%lf", &xDouble);
-				if (numOfSuccessfulScan == 1 && 0.0 <= xDouble && xDouble <= 1.0) {
-					guess(xDouble);
+		printError(WrongMode, "Solve", 0, 0);
+		return mode;
+	} else if (strcmp(token, "print_board")==0) {/*4*/
+		if (mode == Solve || mode == Edit){
+			if (param1!=NULL)
+				printError(WrongNumOfParams, NULL,0,0);
+			else
+				printBoard();
+		}else
+			printError(WrongMode, "Solve/Edit", 0, 0);
+		return mode;
+	} else if (strcmp(token, "set")==0) {/*5*/
+		if (mode == Solve || mode == Edit){
+			if (param1!=NULL && param2!=NULL && param3!=NULL && param4==NULL){
+				numOfSuccessfulScan = sscanf(param1, "%d", &x);
+				if (numOfSuccessfulScan == 1 && isNumInRange(x, 1, Dim.m * Dim.n)){
+					numOfSuccessfulScan = sscanf(param2, "%d", &y);
+					if (numOfSuccessfulScan == 1 && isNumInRange(y, 1, Dim.m * Dim.n)){
+						numOfSuccessfulScan = sscanf(param3, "%d", &z);
+						if (numOfSuccessfulScan == 1){
+							if (set(x, y, z)) /* if board solved start a new game */
+								return Init;
+							else
+								return mode;
+						}
+						else{
+							printError(ParamIsNotNum,"3",0, 0);
+							return mode;
+						}
+					}
+					else{
+						printError(ParamOutOfBounds,"2",1, Dim.m * Dim.n);
+						return mode;
+					}
+				}
+				else{
+					printError(ParamOutOfBounds,"1",1, Dim.m * Dim.n);
 					return mode;
 				}
-				printErrorAndExit(IndexOutOfBounds,0,0, 1);
 			}
-		}
-		printErrorAndExit(InvalidCommand,0,0,0);
-	} else if (strcmp(token, "generate")==0) {
-		if (mode == Edit) {
-			token = strtok(NULL, " \t\r\n");
-			if (token != NULL) {
-				numOfSuccessfulScan = sscanf(token, "%d", &x);
-				if (numOfSuccessfulScan == 1 && isNumInRange(x, 0, Dim.m * Dim.n * Dim.m * Dim.n)) {
-					token = strtok(NULL, " \t\r\n");
-					if (token != NULL) {
-						numOfSuccessfulScan = sscanf(token, "%d", &y);
-						if (numOfSuccessfulScan == 1 && isNumInRange(y, 0, Dim.m * Dim.n * Dim.m * Dim.n)) {
-							generate(x, y);
-							return mode;
-						}
-						printErrorAndExit(IndexOutOfBounds,0,0, Dim.m * Dim.n * Dim.m * Dim.n);
-					}
-					printErrorAndExit(InvalidCommand,0,0,0);
-				}
-				printErrorAndExit(IndexOutOfBounds,0,0, Dim.m * Dim.n * Dim.m * Dim.n);
-			}
-		}
-		printErrorAndExit(InvalidCommand,0,0,0);
-	} else if (strcmp(token, "undo")==0) {
-		if (mode == Solve || mode == Edit) {
-			undo();
-			return mode;
-		}
-		printErrorAndExit(InvalidCommand,0,0,0);
-	} else if (strcmp(token, "redo")==0) {
-		if (mode == Solve || mode == Edit) {
-			redo();
-			return mode;
-		}
-		printErrorAndExit(InvalidCommand,0,0,0);
-	} else if (strcmp(token, "save")==0) {
-		if (mode == Solve || mode == Edit) {
-			save(strtok(NULL, " \t\r\n"));
-			return mode;
-		}
-		printErrorAndExit(InvalidCommand,0,0,0);
-	} else if (strcmp(token, "hint")==0) {
-		if (mode == Solve) {
-			token = strtok(NULL, " \t\r\n");
-			if (token != NULL) {
-				numOfSuccessfulScan = sscanf(token, "%d", &x);
-				if (numOfSuccessfulScan == 1 && isNumInRange(x, 1, Dim.m * Dim.n)) {
-					token = strtok(NULL, " \t\r\n");
-					if (token != NULL) {
-						numOfSuccessfulScan = sscanf(token, "%d", &y);
-						if (numOfSuccessfulScan == 1 && isNumInRange(y, 1, Dim.m * Dim.n)) {
-							hint(x, y);
-							return mode;
-						}
-						printErrorAndExit(IndexOutOfBounds,0,1,Dim.m * Dim.n);
-					}
-					printErrorAndExit(InvalidCommand,0,0,0);
-				}
-				printErrorAndExit(IndexOutOfBounds,0,1,Dim.m * Dim.n);
-			}
-		}
-		printErrorAndExit(InvalidCommand,0,0,0);
-	} else if (strcmp(token, "guess_hint")==0) {
-		if (mode == Solve) {
-			token = strtok(NULL, " \t\r\n");
-			if (token != NULL) {
-				numOfSuccessfulScan = sscanf(token, "%d", &x);
-				if (numOfSuccessfulScan == 1 && isNumInRange(x, 1, Dim.m * Dim.n)) {
-					token = strtok(NULL, " \t\r\n");
-					if (token != NULL) {
-						numOfSuccessfulScan = sscanf(token, "%d", &y);
-						if (numOfSuccessfulScan == 1 && isNumInRange(y, 1, Dim.m * Dim.n)) {
-							guessHint(x, y);
-							return mode;
-						}
-						printErrorAndExit(IndexOutOfBounds,0,1,Dim.m * Dim.n);
-					}
-					printErrorAndExit(InvalidCommand,0,0,0);
-				}
-				printErrorAndExit(IndexOutOfBounds,0,1,Dim.m * Dim.n);
-			}
-		}
-		printErrorAndExit(InvalidCommand,0,0,0);
-	} else if (strcmp(token, "num_solutions")==0) {
-		if (mode == Solve || mode == Edit) {
-			if (printf("%d", numSolution())==1)
+			else{
+				printError(WrongNumOfParams, NULL,3,0);
 				return mode;
-			else
-				printErrorAndExit(FunctionFailed,"printf",0,0);
+			}
 		}
-		printErrorAndExit(InvalidCommand,0,0,0);
-	} else if (strcmp(token, "autofill")==0) {
-		if (mode == Solve) {
-			autoFill();
-			return mode;
-		}
-		printErrorAndExit(InvalidCommand,0,0,0);
-	} else if (strcmp(token, "reset")==0) {
-		if (mode == Solve || mode == Edit) {
-			reset();
-			return mode;
-		}
-		printErrorAndExit(InvalidCommand,0,0,0);
-	} else if (strcmp(token, "exit")==0) {
-		Exit();
+		printError(WrongMode, "Solve/Edit", 0, 0);
 		return mode;
+	}else if (strcmp(token, "validate")==0){/*6*/
+		if(mode==Solve || mode==Edit){
+			if (param1==NULL){
+				if (!isErroneous()){
+					validate();
+					return mode;
+				}
+				else{
+					printError(Erroneous, NULL,0,0);
+				}
+			}else{
+				printError(WrongNumOfParams, NULL,0,0);
+				return mode;
+			}
+		}
+		printError(WrongMode, "Solve/Edit", 0, 0);
+		return mode;
+	} else if (strcmp(token, "guess")==0) { /*7*/
+		if (mode==Solve){
+			if (param1!=NULL){
+				numOfSuccessfulScan = sscanf(token, "%lf", &xDouble);
+				if (numOfSuccessfulScan == 1 && 0.0 <= xDouble && xDouble <= 1.0){
+					if (!isErroneous()){
+						guess(xDouble);
+						return mode;
+					}
+					else{
+						printError(Erroneous, NULL,0,0);
+						return mode;
+					}
+				}
+				else{
+					printError(IndexOutOfBounds,0,0, 1);
+					return mode;
+				}
+			}
+			else{
+				printError(WrongNumOfParams, NULL,1,0);
+				return mode;
+			}
+		}
+		printError(WrongMode, "Solve", 0, 0);
+		return mode;
+	} else if (strcmp(token, "generate")==0) { /*8*/
+		if (mode==Edit) {
+			if (param1!=NULL && param2!=NULL && param3==NULL) {
+				numOfSuccessfulScan = sscanf(param1, "%d", &x);
+				if (numOfSuccessfulScan == 1 && isNumInRange(x, 0, numOfEmptyCells())){
+					numOfSuccessfulScan = sscanf(param2, "%d", &y);
+					if (numOfSuccessfulScan == 1 && isNumInRange(y, 0, Dim.m*Dim.n*Dim.m*Dim.n)){
+						if (!generate(x, y))
+							printError(GenerationFailed, NULL, 0,0);
+						return mode;
+					}
+					else{
+						printError(ParamOutOfBounds, "2", 0, Dim.m*Dim.n*Dim.m*Dim.n);
+						return mode;
+					}
+				}
+				else{
+					printError(EmptyCellsParamRange, "1", 0, numOfEmptyCells());
+					return mode;
+				}
+			}
+			else{
+				printError(WrongNumOfParams, NULL,2,0);
+				return mode;
+			}
+		}
+		printError(WrongMode, "Edit", 0, 0);
+		return mode;
+	}else if (strcmp(token, "undo")==0){/*9*/
+		if (mode==Solve || mode==Edit){
+			if (param1==NULL){
+				if (!undo()){
+					printError(NoMoreUndo, NULL,0,0);
+				}
+				return mode;
+			}
+			else{
+				printError(WrongNumOfParams, NULL,0,0);
+				return mode;
+			}
+		}
+		printError(WrongMode, "Solve/Edit", 0, 0);
+		return mode;
+	} else if (strcmp(token, "redo")==0) { /*10*/
+		if (mode==Solve || mode==Edit){
+			if (param1==NULL){
+				if (!redo()){
+					printError(NoMoreRedo, NULL,0,0);
+				}
+				return mode;
+			}
+			else{
+				printError(WrongNumOfParams, NULL,0,0);
+				return mode;
+			}
+		}
+		printError(WrongMode, "Solve/Edit", 0, 0);
+		return mode;
+	} else if (strcmp(token, "save")==0) { /*11*/
+		if (mode==Solve||mode==Edit){
+			if (param1!=NULL && param2==NULL){
+				if (mode==Edit){
+					if (isErroneous()){
+						printError(Erroneous, NULL, 0, 0);
+						return mode;
+					}
+					if (!validate()){
+						printError(Validate, NULL,0,0);
+						return mode;
+					}
+				}
+				if (save(param1, mode))
+					return mode;
+				else
+					printError(WritingFileFailed, NULL, 0, 0);
+			}
+			else{
+				printError(WrongNumOfParams, NULL,1,0);
+				return mode;
+			}
+		}
+		printError(WrongMode, "Solve/Edit", 0, 0);
+		return mode;
+	}else if (strcmp(token, "hint")==0){ /*12*/
+		if (mode==Solve){
+			if (param1!=NULL && param2!=NULL && param3==NULL) {
+				numOfSuccessfulScan = sscanf(param1, "%d", &x);
+				if (numOfSuccessfulScan == 1 && isNumInRange(x, 1, Dim.m*Dim.n*Dim.m*Dim.n)){
+					numOfSuccessfulScan = sscanf(param2, "%d", &y);
+					if (numOfSuccessfulScan == 1 && isNumInRange(y, 1, Dim.m*Dim.n*Dim.m*Dim.n)){
+						if (isErroneous()){
+							printError(Erroneous, NULL, 0, 0);
+							return mode;
+						}
+						if (!validate()){
+							printError(Validate, NULL,0,0);
+							return mode;
+						}
+						cell=boardCellAccess(x,y);
+						if (cell->fixed==1){
+							printError(FixedCell, NULL, 0, 0);
+							return mode;
+						}
+						if (cell->value!=0){
+							printError(CellHasValue, NULL,0,0);
+							return mode;
+						}
+						hint(x, y);
+						return mode;
+					}
+					else{
+						printError(ParamOutOfBounds, "2", 1, Dim.m*Dim.n*Dim.m*Dim.n);
+						return mode;
+					}
+				}
+				else{
+					printError(ParamOutOfBounds, "1", 1, Dim.m*Dim.n*Dim.m*Dim.n);
+					return mode;
+				}
+			}
+			else{
+				printError(WrongNumOfParams, NULL,2,0);
+				return mode;
+			}
+		}
+		printError(WrongMode, "Solve", 0, 0);
+		return mode;
+	}else if (strcmp(token, "guess_hint")==0){/*13*/
+		if (mode==Solve){
+			if (param1!=NULL && param2!=NULL && param3==NULL) {
+				numOfSuccessfulScan = sscanf(param1, "%d", &x);
+				if (numOfSuccessfulScan == 1 && isNumInRange(x, 1, Dim.m*Dim.n*Dim.m*Dim.n)){
+					numOfSuccessfulScan = sscanf(param2, "%d", &y);
+					if (numOfSuccessfulScan == 1 && isNumInRange(y, 1, Dim.m*Dim.n*Dim.m*Dim.n)){
+						if (isErroneous()){
+							printError(Erroneous, NULL, 0, 0);
+							return mode;
+						}
+						if (!validate()){
+							printError(Validate, NULL,0,0);
+							return mode;
+						}
+						cell=boardCellAccess(x,y);
+						if (cell->fixed==1){
+							printError(FixedCell, NULL, 0, 0);
+							return mode;
+						}
+						if (cell->value!=0){
+							printError(CellHasValue, NULL,0,0);
+							return mode;
+						}
+						guessHint(x, y);
+						return mode;
+					}
+					else{
+						printError(ParamOutOfBounds, "2", 1, Dim.m*Dim.n*Dim.m*Dim.n);
+						return mode;
+					}
+				}
+				else{
+					printError(ParamOutOfBounds, "1", 1, Dim.m*Dim.n*Dim.m*Dim.n);
+					return mode;
+				}
+			}
+			else{
+				printError(WrongNumOfParams, NULL,2,0);
+				return mode;
+			}
+		}
+		printError(WrongMode, "Solve", 0, 0);
+		return mode;
+	}else if (strcmp(token, "num_solutions")==0){/*14*/
+		if (mode==Solve||mode==Edit){
+			if (param1==NULL){
+				if(!isErroneous()){
+					if (printf("%d", numSolution())==1) /* check if printed one number */
+						return mode;
+					else{
+						printError(FunctionFailed,"printf",0,0);
+						return mode;
+					}
+				}
+				else{
+					printError(Erroneous,NULL,0,0);
+					return mode;
+				}
+			}
+			else{
+				printError(WrongNumOfParams, NULL,0,0);
+				return mode;
+			}
+		}
+		printError(WrongMode, "Solve/Edit", 0, 0);
+		return mode;
+	}else if (strcmp(token, "autofill")==0){/*15*/
+		if (mode==Solve){
+			if (param1==NULL){
+				if (!isErroneous()){
+					autoFill();
+					return mode;
+				}else{
+					printError(Erroneous,NULL,0,0);
+					return mode;
+				}
+			}else{
+				printError(WrongNumOfParams, NULL,0,0);
+				return mode;
+			}
+		}
+		printError(WrongMode, "Solve", 0, 0);
+		return mode;
+	}else if (strcmp(token, "reset")==0){/*16*/
+		if(mode==Solve||mode==Edit){
+			if (param1==NULL){
+				reset();
+				return mode;
+			}else{
+				printError(WrongNumOfParams, NULL,0,0);
+				return mode;
+			}
+		}
+		printError(WrongMode, "Solve/Edit", 0, 0);
+		return mode;
+	}else if (strcmp(token, "exit")==0){/*17*/
+		if (param1==NULL){
+			Exit();
+			return mode;
+		}else{
+			printError(WrongNumOfParams, NULL,0,0);
+			return mode;
+		}
 	} else
-		printErrorAndExit(InvalidCommand,0,0,0);
+		printError(InvalidCommand,0,0,0);
 
 	return mode;
 }

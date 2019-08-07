@@ -1,6 +1,7 @@
 #ifndef AUXILARY_H_
 #define AUXILARY_H_
 
+#include "ErrorHandler.h"
 #include "LinkedList.h"
 #include "Stack.h"
 
