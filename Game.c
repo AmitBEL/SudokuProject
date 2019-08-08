@@ -12,14 +12,34 @@ Moves *movesList;
 
 int mark_errors = 1;
 
+int getNumOfRowInBlock()
+{
+    return (puzzle->blockNumRow);
+}
+
+int getNumOfColInBlock()
+{
+    return (puzzle->blockNumCol);
+}
+
+int getBlockNumOfCells()
+{
+    return (puzzle->blockNumOfCells);
+}
+
+int getNumOfCells()
+{
+    return (puzzle->numOfCells);
+}
+
 bool fillBoard(FILE* fp, Mode mode) {
-	int i, j, N=Dim.m*Dim.n;
+	int i, j, N=puzzle->blockNumOfCells;
 	char str[21]={0}; /* max num is 2^64 and its length is 20 chars (+1 for \0 char) */
 	Cell *cell;
 
 	for(i=0;i<N;i++){
 		for(j=0;j<N;j++){
-			cell = &board[i][j];
+			cell = getCell(j+1, i+1);
 			/*
 			 * read every number as string.
 			 * read the string as number and assign it as value (sscanf reads number with "." in the end as ".0" and thus reads the number as int).
@@ -58,10 +78,10 @@ bool load(char* filepath, Mode mode) {
 	fgets(line, MAX_FIRST_LINE_LENGTH, fp);
 	if (sscanf(line, "%d %d", &m, &n)!=2)
 		return false;
-	Dim.m=m;
-	Dim.n=n;
+	puzzle->blockNumRow = m;
+	puzzle->blockNumCol = n;
 
-	createBoard(Dim.m, Dim.n);
+	createBoard(puzzle->blockNumRow, puzzle->blockNumCol);
 	if (!fillBoard(fp, mode))
 		return false;
 
@@ -72,20 +92,20 @@ bool load(char* filepath, Mode mode) {
 
 bool save(char* filepath, Mode mode) {
 	FILE *fp = fopen(filepath, "w");
-	int N=Dim.m*Dim.n, i, j, charsToWrite;
+	int N=puzzle->blockNumOfCells, i, j, charsToWrite;
 	Cell *cell;
 
 	if (fp == NULL){
 		fclose(fp);
 		return false;
 	}
-	if(fprintf(fp, "%d %d\n", Dim.m, Dim.n)!=4){
+	if(fprintf(fp, "%d %d\n", puzzle->blockNumRow, puzzle->blockNumCol)!=4){
 		fclose(fp);
 		return false;
 	}
 	for(i=0;i<N;i++){
 			for(j=0;j<N;j++){
-				cell = &board[i][j];
+				cell = getCell(j+1,i+1);
 				if (j>0){
 					if (fprintf(fp, " ")!=1){
 						fclose(fp);
@@ -120,7 +140,7 @@ bool save(char* filepath, Mode mode) {
 }
 
 /* return a pointer to cell <x,y> */
-Cell *getCell(int x, int y)
+Cell* getCell(int x, int y)
 {
     int row = y - 1;
     int col = x - 1;

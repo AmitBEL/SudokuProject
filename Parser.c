@@ -148,9 +148,9 @@ notes for myself:
 		if (mode == Solve || mode == Edit){
 			if (param1!=NULL && param2!=NULL && param3!=NULL && param4==NULL){
 				numOfSuccessfulScan = sscanf(param1, "%d", &x);
-				if (numOfSuccessfulScan == 1 && isNumInRange(x, 1, Dim.m * Dim.n)){
+				if (numOfSuccessfulScan == 1 && isNumInRange(x, 1, getBlockNumOfCells())){
 					numOfSuccessfulScan = sscanf(param2, "%d", &y);
-					if (numOfSuccessfulScan == 1 && isNumInRange(y, 1, Dim.m * Dim.n)){
+					if (numOfSuccessfulScan == 1 && isNumInRange(y, 1, getBlockNumOfCells())){
 						numOfSuccessfulScan = sscanf(param3, "%d", &z);
 						if (numOfSuccessfulScan == 1){
 							if (set(x, y, z, mode)) /* if board solved start a new game */
@@ -164,12 +164,12 @@ notes for myself:
 						}
 					}
 					else{
-						printError(ParamOutOfBounds,"2",1, Dim.m * Dim.n);
+						printError(ParamOutOfBounds,"2",1, getBlockNumOfCells());
 						return mode;
 					}
 				}
 				else{
-					printError(ParamOutOfBounds,"1",1, Dim.m * Dim.n);
+					printError(ParamOutOfBounds,"1",1, getBlockNumOfCells());
 					return mode;
 				}
 			}
@@ -229,13 +229,13 @@ notes for myself:
 				numOfSuccessfulScan = sscanf(param1, "%d", &x);
 				if (numOfSuccessfulScan == 1 && isNumInRange(x, 0, numOfEmptyCells())){
 					numOfSuccessfulScan = sscanf(param2, "%d", &y);
-					if (numOfSuccessfulScan == 1 && isNumInRange(y, 0, Dim.m*Dim.n*Dim.m*Dim.n)){
+					if (numOfSuccessfulScan == 1 && isNumInRange(y, 0, getNumOfCells())){
 						if (!generate(x, y))
 							printError(GenerationFailed, NULL, 0,0);
 						return mode;
 					}
 					else{
-						printError(ParamOutOfBounds, "2", 0, Dim.m*Dim.n*Dim.m*Dim.n);
+						printError(ParamOutOfBounds, "2", 0, getNumOfCells());
 						return mode;
 					}
 				}
@@ -310,9 +310,9 @@ notes for myself:
 		if (mode==Solve){
 			if (param1!=NULL && param2!=NULL && param3==NULL) {
 				numOfSuccessfulScan = sscanf(param1, "%d", &x);
-				if (numOfSuccessfulScan == 1 && isNumInRange(x, 1, Dim.m*Dim.n*Dim.m*Dim.n)){
+				if (numOfSuccessfulScan == 1 && isNumInRange(x, 1, getNumOfCells())){
 					numOfSuccessfulScan = sscanf(param2, "%d", &y);
-					if (numOfSuccessfulScan == 1 && isNumInRange(y, 1, Dim.m*Dim.n*Dim.m*Dim.n)){
+					if (numOfSuccessfulScan == 1 && isNumInRange(y, 1, getNumOfCells())){
 						if (isErroneous()){
 							printError(Erroneous, NULL, 0, 0);
 							return mode;
@@ -325,12 +325,12 @@ notes for myself:
 						return mode;
 					}
 					else{
-						printError(ParamOutOfBounds, "2", 1, Dim.m*Dim.n*Dim.m*Dim.n);
+						printError(ParamOutOfBounds, "2", 1, getNumOfCells());
 						return mode;
 					}
 				}
 				else{
-					printError(ParamOutOfBounds, "1", 1, Dim.m*Dim.n*Dim.m*Dim.n);
+					printError(ParamOutOfBounds, "1", 1, getNumOfCells());
 					return mode;
 				}
 			}
@@ -345,9 +345,9 @@ notes for myself:
 		if (mode==Solve){
 			if (param1!=NULL && param2!=NULL && param3==NULL) {
 				numOfSuccessfulScan = sscanf(param1, "%d", &x);
-				if (numOfSuccessfulScan == 1 && isNumInRange(x, 1, Dim.m*Dim.n*Dim.m*Dim.n)){
+				if (numOfSuccessfulScan == 1 && isNumInRange(x, 1, getNumOfCells())){
 					numOfSuccessfulScan = sscanf(param2, "%d", &y);
-					if (numOfSuccessfulScan == 1 && isNumInRange(y, 1, Dim.m*Dim.n*Dim.m*Dim.n)){
+					if (numOfSuccessfulScan == 1 && isNumInRange(y, 1, getNumOfCells())){
 						if (isErroneous()){
 							printError(Erroneous, NULL, 0, 0);
 							return mode;
@@ -360,12 +360,12 @@ notes for myself:
 						return mode;
 					}
 					else{
-						printError(ParamOutOfBounds, "2", 1, Dim.m*Dim.n*Dim.m*Dim.n);
+						printError(ParamOutOfBounds, "2", 1, getNumOfCells());
 						return mode;
 					}
 				}
 				else{
-					printError(ParamOutOfBounds, "1", 1, Dim.m*Dim.n*Dim.m*Dim.n);
+					printError(ParamOutOfBounds, "1", 1, getNumOfCells());
 					return mode;
 				}
 			}
