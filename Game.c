@@ -8,30 +8,6 @@ Moves *movesList;
 
 
 
-/*
- * exit if failed to allocate memory, cannot recover from this error
- */
-void createBoard(int m, int n){
-	int i,j,N=m*n;
-	board = (Cell **)calloc(N, sizeof(Cell *));
-	if (board == 0) { /* calloc failed */
-		printError(MemoryAllocFailed, NULL, 0,0);
-		exit(0);
-	}
-	for (i = 0; i < N; i++)
-	{
-		board[i] = (Cell *)calloc(N, sizeof(Cell));
-		if (board[i] == 0) { /* calloc failed */
-			for (j=0; j<i; j++) {
-				free(board[j]);
-			}
-			free(board);
-			printError(MemoryAllocFailed, NULL, 0,0);
-			exit(0);
-		}
-	}
-}
-
 bool fillBoard(FILE* fp, Mode mode) {
 	int i, j, N=Dim.m*Dim.n;
 	char str[21]={0}; /* max num is 2^64 and its length is 20 chars (+1 for \0 char) */
@@ -137,17 +113,4 @@ bool save(char* filepath, Mode mode) {
 		return false;
 
 	return true;
-}
-
-bool solve(char* filepath, Mode mode){
-	return load(filepath, mode);
-}
-
-bool editNew(){
-	createBoard(3,3);
-	return true;
-}
-
-bool editFile(char* filepath, Mode mode){
-	return load(filepath, mode);
 }
