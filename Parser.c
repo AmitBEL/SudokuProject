@@ -1,7 +1,9 @@
 #include "Parser.h"
 
-bool EditType(char* optional) {
-	return (optional == NULL ? editNew() : editFile(optional));
+int mark_errors = 1, last_mark_errors = 1; /* as in page 3 */
+
+bool EditType(char* optional, Mode mode) {
+	return (optional == NULL ? editNew() : editFile(optional, mode));
 }
 
 /*
@@ -9,9 +11,9 @@ bool EditType(char* optional) {
  */
 void UpdateMarkErrors(char* value) {
 	if (strcmp(value, "1") == 0) {
-		EnableMarkErrors();
+		mark_errors=1;
 	} else if (strcmp(value, "0") == 0) {
-		DisableMarkErrors();
+		mark_errors=0;
 	}
 }
 
@@ -26,10 +28,9 @@ bool isNumInRange(int num, int minNum, int maxNum) {
 Mode getCommand(Mode mode) {
 	char input[MAX_INPUT_CHARS];
 	char delimiter[]=" \t\r";
-	char *fgetsRetVal, *p, *token, *param1, *param2, *param3, *param4;
+	char *fgetsRetVal, *token, *param1, *param2, *param3, *param4;
 	int x, y, z, numOfSuccessfulScan;
 	double xDouble;
-	Cell* cell;
 
 	/* handle user input */
 	/* notes:
@@ -40,7 +41,6 @@ Mode getCommand(Mode mode) {
 	/*
 	 * read a coammnd from the user, each line is command
 	 * command with more than 256 chars are invalid
-	 * "sAvE"=="save"
 	 * consider EOF as "exit"
 	 * ignore empty command (also empty lines, because each line is command)
 	 */
@@ -50,9 +50,6 @@ Mode getCommand(Mode mode) {
 		printError(TooLongInput, NULL, 0, 0);
 		return mode;
 	}
-
-	for (p=input; *p; ++p)
-		*p = tolower(*p); /* lowercase input */
 
 	if (fgetsRetVal != NULL) {
 		token = strtok(input, delimiter);
@@ -106,8 +103,10 @@ notes for myself:
 			printError(WrongNumOfParams, NULL,1,0);
 			return mode;
 		}
-		if (solve(param1)) /* assumption: change to new game iff new game loading succeeded */
+		if (solve(param1, mode)){ /* assumption: change to new game iff new game loading succeeded */
+			mark_errors = last_mark_errors;
 			return Solve;
+		}
 		printError(CommandFailed,NULL,0,0);
 		return mode;
 	} else if (strcmp(token, "edit")==0) {/*2*/
@@ -115,8 +114,10 @@ notes for myself:
 			printError(WrongNumOfParamsBounds, NULL,0,1);
 			return mode;
 		}
-		if (EditType(param1))
+		if (EditType(param1, mode)){
+			last_mark_errors=mark_errors;
 			return Edit;
+		}
 		printError(CommandFailed,NULL,0,0);
 		return mode;
 	} else if (strcmp(token, "mark_errors")==0) {/*3*/
@@ -139,7 +140,7 @@ notes for myself:
 			if (param1!=NULL)
 				printError(WrongNumOfParams, NULL,0,0);
 			else
-				printBoard();
+				printBoard(mark_errors);
 		}else
 			printError(WrongMode, "Solve/Edit", 0, 0);
 		return mode;
@@ -152,7 +153,7 @@ notes for myself:
 					if (numOfSuccessfulScan == 1 && isNumInRange(y, 1, Dim.m * Dim.n)){
 						numOfSuccessfulScan = sscanf(param3, "%d", &z);
 						if (numOfSuccessfulScan == 1){
-							if (set(x, y, z)) /* if board solved start a new game */
+							if (set(x, y, z, mode)) /* if board solved start a new game */
 								return Init;
 							else
 								return mode;
@@ -320,15 +321,6 @@ notes for myself:
 							printError(Validate, NULL,0,0);
 							return mode;
 						}
-						cell=boardCellAccess(x,y);
-						if (cell->fixed==1){
-							printError(FixedCell, NULL, 0, 0);
-							return mode;
-						}
-						if (cell->value!=0){
-							printError(CellHasValue, NULL,0,0);
-							return mode;
-						}
 						hint(x, y);
 						return mode;
 					}
@@ -364,15 +356,6 @@ notes for myself:
 							printError(Validate, NULL,0,0);
 							return mode;
 						}
-						cell=boardCellAccess(x,y);
-						if (cell->fixed==1){
-							printError(FixedCell, NULL, 0, 0);
-							return mode;
-						}
-						if (cell->value!=0){
-							printError(CellHasValue, NULL,0,0);
-							return mode;
-						}
 						guessHint(x, y);
 						return mode;
 					}
@@ -397,12 +380,7 @@ notes for myself:
 		if (mode==Solve||mode==Edit){
 			if (param1==NULL){
 				if(!isErroneous()){
-					if (printf("%d", numSolution())==1) /* check if printed one number */
-						return mode;
-					else{
-						printError(FunctionFailed,"printf",0,0);
-						return mode;
-					}
+					numSolution();
 				}
 				else{
 					printError(Erroneous,NULL,0,0);

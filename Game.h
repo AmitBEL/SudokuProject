@@ -12,19 +12,19 @@ struct {int m; int n;} Dim;
 
 Cell* getCell(int x, int y);
 
-bool solve(char* filepath);
+bool solve(char* filepath, Mode mode);
 
 bool editNew();
 
-bool editFile(char* filepath);
+bool editFile(char* filepath, Mode mode);
 
-bool load(char* filepath);
+bool load(char* filepath, Mode mode);
 
 void markErrors(int mark);
 
 void printBoard();
 
-bool set(int x, int y, int z);
+bool set(int x, int y, int z, Mode mode);
 
 void updateCollisions(int x, int y, int z, int num);
 
@@ -57,10 +57,6 @@ void reset();
 void Exit();
 
 Cell* boardCellAccess(int x, int y);
-
-void EnableMarkErrors();
-
-void DisableMarkErrors();
 
 int numOfEmptyCells();
 

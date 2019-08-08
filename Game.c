@@ -6,7 +6,7 @@ Cell **board;
 
 Moves *movesList;
 
-int mark_errors = 1; /* as in page 3 */
+
 
 /*
  * exit if failed to allocate memory, cannot recover from this error
@@ -32,7 +32,7 @@ void createBoard(int m, int n){
 	}
 }
 
-bool fillBoard(FILE* fp) {
+bool fillBoard(FILE* fp, Mode mode) {
 	int i, j, N=Dim.m*Dim.n;
 	char str[21]={0}; /* max num is 2^64 and its length is 20 chars (+1 for \0 char) */
 	Cell *cell;
@@ -47,7 +47,7 @@ bool fillBoard(FILE* fp) {
 			 */
 			if (fscanf(fp, "%s", str)==1) {
 				if (sscanf(str, "%d", &(cell->value))==1) {
-					if (str[((int)strlen(str))-1]=='.')
+					if (str[((int)strlen(str))-1]=='.' && mode==Solve)
 						cell->fixed=1;
 				}
 				else
@@ -65,7 +65,7 @@ bool fillBoard(FILE* fp) {
  * return true if assignment to board succeeded,
  * otherwise return false (failure in this function is treated as function failed, parameter 5 in parser.c)
  */
-bool load(char* filepath) {
+bool load(char* filepath, Mode mode) {
 	FILE* fp;
 	int m,n;
 	char line[MAX_FIRST_LINE_LENGTH];
@@ -82,7 +82,7 @@ bool load(char* filepath) {
 	Dim.n=n;
 
 	createBoard(Dim.m, Dim.n);
-	if (!fillBoard(fp))
+	if (!fillBoard(fp, mode))
 		return false;
 
 	fclose(fp);
@@ -139,8 +139,8 @@ bool save(char* filepath, Mode mode) {
 	return true;
 }
 
-bool solve(char* filepath){
-	return load(filepath);
+bool solve(char* filepath, Mode mode){
+	return load(filepath, mode);
 }
 
 bool editNew(){
@@ -148,6 +148,6 @@ bool editNew(){
 	return true;
 }
 
-bool editFile(char* filepath){
-	return load(filepath);
+bool editFile(char* filepath, Mode mode){
+	return load(filepath, mode);
 }
