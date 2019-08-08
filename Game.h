@@ -8,8 +8,6 @@
 #include "Auxilary.h"
 #define MAX_FIRST_LINE_LENGTH 10
 
-struct {int m; int n;} Dim;
-
 Cell* getCell(int x, int y);
 
 bool solve(char* filepath, Mode mode);
