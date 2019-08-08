@@ -1,54 +1,63 @@
 #ifndef GAME_H_
 #define GAME_H_
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <Math.h>
 #include "Auxilary.h"
+#define MAX_FIRST_LINE_LENGTH 10
 
-Cell **board;
-
-Moves *movesList;
-
-int mark_errors=0;
+struct {int m; int n;} Dim;
 
 Cell* getCell(int x, int y);
 
-void solve(char* filepath); // change void to boolean
+bool solve(char* filepath, Mode mode);
 
-void editNew(); // change void to boolean
+bool editNew();
 
-void editFile(char* filepath); // change void to boolean
+bool editFile(char* filepath, Mode mode);
 
-void load(char* filepath);
+bool load(char* filepath, Mode mode);
 
 void markErrors(int mark);
 
 void printBoard();
 
-void set(int x, int y, int z); // change void to boolean
+bool set(int x, int y, int z, Mode mode);
 
 void updateCollisions(int x, int y, int z, int num);
 
 void calcCollisions(int x, int y, int z);
 
-void validate(); // change void to boolean
+bool validate();
+
+bool isErroneous();
 
 void guess(float threshold);
 
-void undo();
+int generate(int x, int y);
 
-void redo();
+bool undo();
 
-void save(char* filepath);
+bool redo();
+
+bool save(char* filepath, Mode mode);
 
 void hint(int x, int y);
 
 void guessHint(int x, int y);
 
-void numSolution();
+int numSolution();
 
 void autoFill();
 
 void reset();
 
-void exit();
+void Exit();
+
+Cell* boardCellAccess(int x, int y);
+
+int numOfEmptyCells();
 
 #endif

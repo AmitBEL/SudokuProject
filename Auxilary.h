@@ -1,9 +1,13 @@
 #ifndef AUXILARY_H_
 #define AUXILARY_H_
 
-typedef enum {INIT, EDIT, SOLVE} Mode;
+#include "ErrorHandler.h"
+#include "LinkedList.h"
+#include "Stack.h"
 
-typedef struct {
+typedef enum Mode {Init, Edit, Solve} Mode;
+
+typedef struct Cell {
 	int fixed;
 	int value;
 	int numOfCollisions;
