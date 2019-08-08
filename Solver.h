@@ -3,6 +3,6 @@
 
 #include "Auxilary.h"
 
-int backtrack(Cell** board);
+int backtrack(Puzzle *puzzle);
 
 #endif
