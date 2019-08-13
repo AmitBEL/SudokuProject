@@ -26,8 +26,6 @@ Move** set(int x, int y, int z, Mode mode);
 
 void updateCollisions(int x, int y, int z, int num);
 
-void calcCollisions(int x, int y, int z);
-
 bool validate();
 
 bool isErroneous();

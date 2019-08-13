@@ -316,7 +316,7 @@ Move** set(int x, int y, int z, Mode mode)
             puzzle->numOfEmptyCells++;
         }
     }
-    calcCollisions(x, y, z);
+    updateCollisions(x, y, z);
     addToList(x, y, cell->value, z);
     cell->value = z;
     return &head;
