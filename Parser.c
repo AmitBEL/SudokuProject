@@ -68,7 +68,7 @@ Mode getCommand(Mode mode) {
 	 */
 	fgetsRetVal = fgets(input, MAX_INPUT_CHARS, stdin);
 
-	if (input[MAX_INPUT_CHARS-2]!='\n' || input[MAX_INPUT_CHARS-2]!='\0'){ /* ensure command length <= 256 chars */
+	if (input[MAX_INPUT_CHARS-2]!='\n' && input[MAX_INPUT_CHARS-2]!='\0'){ /* ensure command length <= 256 chars */
 		printError(TooLongInput, NULL, 0, 0);
 		return mode;
 	}
@@ -340,8 +340,10 @@ notes for myself:
 				}
 				if (save(param1, mode))
 					return mode;
-				else
+				else{
 					printError(WritingFileFailed, NULL, 0, 0);
+					return mode;
+				}
 			}
 			else{
 				printError(WrongNumOfParams, NULL,1,0);

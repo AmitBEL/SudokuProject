@@ -67,6 +67,9 @@ void deleteNode(Step** head_ref, Step* del)
    head_ref --> pointer to head node pointer.
    del  -->  pointer to node that all its next nodes will be deleted. */
 void deleteAllNextNodes(Step** head_ref, Step* node) {
+	if (*head_ref == NULL || node == NULL)
+	        return;
+
 	while (node->next!=NULL) {
 		deleteNode(head_ref, node->next);
 	}
