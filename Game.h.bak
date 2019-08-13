@@ -6,9 +6,6 @@
 #include <string.h>
 #include <Math.h>
 #include "Auxilary.h"
-#include "ILP.h"
-#include "Solver.h"
-
 #define MAX_FIRST_LINE_LENGTH 10
 
 Cell* getCell(int x, int y);
@@ -25,7 +22,7 @@ void markErrors(int mark);
 
 void printBoard();
 
-Move* set(int x, int y, int z, Mode mode);
+Move** set(int x, int y, int z, Mode mode);
 
 void updateCollisions(int x, int y, int newValue);
 
@@ -33,7 +30,7 @@ bool validate();
 
 bool isErroneous();
 
-Move* guess(float threshold, Mode mode);
+Move** guess(float threshold);
 /*
 Move* generate(int x, int y);
 
@@ -49,7 +46,9 @@ void guessHint(int x, int y);
 
 void numSolution();
 
-Move* autoFill();
+Move** autoFill();
+
+void reset();
 
 void Exit();
 
