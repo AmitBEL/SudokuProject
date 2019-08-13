@@ -265,6 +265,7 @@ void printBoard(int mark)
                         }
                     }
                 }
+            }
                 printf("|\n");
             }
             for (l = 0; l < numOfdashes; l++)
@@ -275,7 +276,6 @@ void printBoard(int mark)
         }
         return;
     }
-}
 
 /* 
  * set cell <x,y> value to z
@@ -369,13 +369,17 @@ void updateRowCollisions(int x, int y, int newValue)
     Cell *cell = getCell(x, y);
     Cell *colCell;
     int oldValue = cell->value;
-    if (oldValue==newValue)
+    /*if (oldValue==newValue)
     {
         return;
     }
-    cell->numOfCollisions = 0; /* initialize cell <x,y> num of collisions */
+    cell->numOfCollisions = 0; *//* initialize cell <x,y> num of collisions */
     for (i=0; i<puzzle->blockNumOfCells; i++)
     {
+    	if (i+1 == x)
+    	{
+    		continue;
+    	}
         colCell = getCell(i+1,y);
         if ((colCell->value == oldValue) && (oldValue != 0)) /* collision with the old value */
         {
@@ -396,13 +400,17 @@ void updateColCollisions(int x, int y, int newValue)
     Cell *cell = getCell(x, y);
     Cell *colCell;
     int oldValue = cell->value;
-    if (oldValue==newValue)
+    /*if (oldValue==newValue)
     {
         return;
     }
-    cell->numOfCollisions = 0; /* initialize cell <x,y> num of collisions */
+    cell->numOfCollisions = 0;*/ /* initialize cell <x,y> num of collisions */
     for (i=0; i<puzzle->blockNumOfCells; i++)
     {
+    	if (i+1 == y)
+    	{
+    		continue;
+    	}
         colCell = getCell(x,i+1);
         if ((colCell->value == oldValue) && (oldValue != 0)) /* collision with the old value */
         {
@@ -441,19 +449,24 @@ void updateBlockCollisions(int x, int y, int newValue)
     Cell *cell = getCell(x, y);
     Cell *colCell;
     int oldValue = cell->value;
-    if (oldValue==newValue)
+    /*if (oldValue==newValue)
     {
         return;
     }
-    cell->numOfCollisions = 0; /* initialize cell <x,y> num of collisions */
+    cell->numOfCollisions = 0;*/ /* initialize cell <x,y> num of collisions */
     
     firstRow = firstRowInBlock(y-1, puzzle->blockNumRow); /* index of first row in the block */
 	firstCol = firstColInBlock(x-1, puzzle->blockNumCol); /* index of first column in the block */
 
     for (i = firstRow; i < firstRow + puzzle->blockNumRow; i++)
 	{
+    	if (i+1==y) /* do not check the same row twice */
+    		continue;
 		for (j = firstCol; j < firstCol + puzzle->blockNumCol; j++)
 		{
+			if (j+1==x) /* do not check the same column twice */
+				continue;
+
 			colCell = getCell(j+1, i+1); 
             if ((colCell->value == oldValue) && (oldValue != 0)) /* collision with the old value */
             {
@@ -471,6 +484,8 @@ void updateBlockCollisions(int x, int y, int newValue)
 /* update collisions of the new and old values */
 void updateCollisions(int x, int y, int newValue)
 {
+	Cell* cell=getCell(x,y);
+	cell->numOfCollisions=0;
     updateRowCollisions(x, y, newValue);
     updateColCollisions(x, y, newValue);
     updateBlockCollisions(x, y, newValue);
