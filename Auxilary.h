@@ -17,14 +17,15 @@ typedef struct Move {
 	int x;
 	int y;
 	int oldValue;
+	int newValue;
 	struct Move *nextMove;
 } Move;
 
-typedef struct Moves {
+typedef struct Step {
 	Move *move;
-	struct Moves *prevMoves;
-	struct Moves *nextMoves;
-} Moves;
+	struct Step *prevStep;
+	struct Step *nextStep;
+} Step;
 
 typedef struct {
 	Cell **board;
