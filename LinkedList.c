@@ -1,16 +1,20 @@
 #include "LinkedList.h"
 
 void insertAfterDoubly(DoublyLinkedList *current, DoublyLinkedList *new) {
-	new->next = current->next;
-	current->next->prev = new;
+	if (current!=NULL){
+		new->next = current->next;
+		current->next->prev = new;
 
-	new->prev = current;
-	current->next = new;
+		new->prev = current;
+		current->next = new;
+	}
 }
 
 void deleteCurrentDoubly(DoublyLinkedList *current) {
-	current->next->prev = current->prev;
-	current->prev->next = current->next;
+	if (current->next!=current) {
+		current->next->prev = current->prev;
+		current->prev->next = current->next;
+	}
 
 	free(current);
 }

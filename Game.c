@@ -6,10 +6,9 @@
 #include "Solver.h"
 #include <stdbool.h>
 
-Puzzle* puzzle = &((Puzzle){0, 0, 0, 0, 0, 0, 0});
-
+Puzzle puzzleStrct = {0, 0, 0, 0, 0, 0, 0};
+Puzzle *puzzle = &puzzleStrct;
 Moves* movesList;
-
 int mark_errors = 1;
 
 int getNumOfRowInBlock()
@@ -64,6 +63,8 @@ bool fillBoard(FILE* fp, Mode mode) {
  * should detect erroneous values in board? (erroneous board can be saved in solve mode)
  * return true if assignment to board succeeded,
  * otherwise return false (failure in this function is treated as function failed, parameter 5 in parser.c)
+ * notes:
+ * https://moodle.tau.ac.il/mod/forum/discuss.php?d=88124
  */
 bool load(char* filepath, Mode mode) {
 	FILE* fp;
@@ -90,47 +91,32 @@ bool load(char* filepath, Mode mode) {
 	return true;
 }
 
+/*
+ * notes:
+ * https://moodle.tau.ac.il/mod/forum/discuss.php?d=87711
+ */
 bool save(char* filepath, Mode mode) {
 	FILE *fp = fopen(filepath, "w");
-	int N=puzzle->blockNumOfCells, i, j, charsToWrite;
+	int N=puzzle->blockNumOfCells, i, j;
 	Cell *cell;
 
 	if (fp == NULL){
 		fclose(fp);
 		return false;
 	}
-	if(fprintf(fp, "%d %d\n", puzzle->blockNumRow, puzzle->blockNumCol)!=4){
-		fclose(fp);
-		return false;
-	}
+	fprintf(fp, "%d %d\n", puzzle->blockNumRow, puzzle->blockNumCol);
 	for(i=0;i<N;i++){
 			for(j=0;j<N;j++){
 				cell = getCell(j+1,i+1);
 				if (j>0){
-					if (fprintf(fp, " ")!=1){
-						fclose(fp);
-						return false;
-					}
+					fprintf(fp, " ");
 				}
-				if (cell->value==0)
-					charsToWrite=1;
-				else
-					charsToWrite=(int)(floor(log10((double)(cell->value))))+1;
-				if (fprintf(fp, "%d", cell->value)!=charsToWrite){
-					fclose(fp);
-					return false;
-				}
+				fprintf(fp, "%d", cell->value);
 				if (cell->fixed==1 || (mode==Edit && cell->value!=0)){
-					if (fprintf(fp, ".")!=1){
-						fclose(fp);
-						return false;
-					}
+					fprintf(fp, ".");
 				}
 			}
-			if (fprintf(fp, "\n")!=1){
-				fclose(fp);
-				return false;
-			}
+			fprintf(fp, "\n");
 	}
 
 	if (fclose(fp)!=0)
@@ -150,10 +136,10 @@ Cell* getCell(int x, int y)
 /* initialize puzzle fields - free allocated memory */
 void cleanPuzzle()
 {
-    int i, j;
+    int i;
     for (i = 0; i < puzzle->blockNumOfCells; i++)
     {
-        free(puzzle->board[i])
+        free(puzzle->board[i]);
     }
     free(puzzle->board);
     puzzle->blockNumCol = 0;
@@ -172,12 +158,14 @@ bool solve(char *filepath, Mode mode)
     {
         cleanPuzzle();
     }
-    return (load(filepath, Mode mode));
+    return (load(filepath, mode));
 }
 
 /* create new empty puzzle board */
 void createBoard(int blockNumOfRows, int blockNumOfCols)
 {
+	int i, j;
+
     puzzle->blockNumRow = blockNumOfRows;
     puzzle->blockNumCol = blockNumOfCols;
     puzzle->blockNumOfCells = blockNumOfCols * blockNumOfRows;
@@ -188,7 +176,8 @@ void createBoard(int blockNumOfRows, int blockNumOfCols)
     puzzle->board = (Cell **)calloc(puzzle->blockNumOfCells, sizeof(Cell *));
     if (puzzle->board == NULL) /* calloc failed */
     {
-        printErrorAndExit(FunctionFailed, "calloc", 0, 0);
+        printError(MemoryAllocFailed, NULL, 0, 0);
+        exit(0);
     }
     for (i = 0; i < puzzle->blockNumOfCells; i++)
     {
@@ -200,7 +189,8 @@ void createBoard(int blockNumOfRows, int blockNumOfCols)
                 free(puzzle->board[j]);
             }
             free(puzzle->board);
-            printErrorAndExit(FunctionFailed, "calloc", 0, 0);
+            printError(MemoryAllocFailed, NULL, 0, 0);
+            exit(0);
         }
     }
 }
@@ -223,7 +213,7 @@ bool editFile(char *filepath, Mode mode)
     {
         cleanPuzzle();
     }
-    return (load(filepath, Mode mode));
+    return (load(filepath, mode));
 }
 
 /* 
@@ -235,8 +225,8 @@ void printBoard(int mark)
     Cell *cell;
     int cellRow, cellCol;
     int i, j, k, r, l;
-    int M = blockNumRow; /* num of blocks in a row */
-    int N = blockNumCol; /* num of cells in a block row */
+    int M = puzzle->blockNumRow; /* num of blocks in a row */
+    int N = puzzle->blockNumCol; /* num of cells in a block row */
     int C = 4;           /* num of chars every cell take to print */
     int numOfdashes = M * (N * C + 1) + 1;
 
@@ -300,13 +290,13 @@ void printBoard(int mark)
  * update the number of empty cells
  * if all the cells are not empty and game mode is solve
  * check if the puzzle can be solved  
- * print a messaage and update game mode according to the check
+ * print a message and update game mode according to the check
  *  */
 Move* set(int x, int y, int z, Mode mode)
 {
     Cell *cell;
     cell = getCell(x, y);
-    if (mode == SOLVE && cell->fixed)
+    if (mode == Solve && cell->fixed)
     {
         printf("Error: cell is fixed\n");
         return NULL;
@@ -331,19 +321,19 @@ Move* set(int x, int y, int z, Mode mode)
 }
 
 bool isSolved()
-{
-    if (!(puzzle->numOfEmptyCells))
     {
-        if (puzzle->numOfErroneous)
+        if (!(puzzle->numOfEmptyCells))
         {
-            printf("The solution is erroneous.\n");
-        }
-        else
-        {
-            printf("Puzzle solved successfully\n");
+            if (puzzle->numOfErroneous)
+            {
+                printf("The solution is erroneous.\n");
+            }
+            else
+            {
+                printf("Puzzle solved successfully\n");
             return true;
+            }
         }
-    }
     return false;
 }
 
@@ -458,12 +448,12 @@ void updateBlockCollisions(int x, int y, int newValue)
     }
     cell->numOfCollisions = 0; /* initialize cell <x,y> num of collisions */
     
-    firstRow = firstRowInBlock(y-1, puzzle->blockNumRows); /* index of first row in the block */
-	firstCol = firstColInBlock(x-1, puzzle->blockNumCols); /* index of first column in the block */
+    firstRow = firstRowInBlock(y-1, puzzle->blockNumRow); /* index of first row in the block */
+	firstCol = firstColInBlock(x-1, puzzle->blockNumCol); /* index of first column in the block */
 
-    for (i = firstRow; i < firstRow + puzzle->blockNumRows; i++)
+    for (i = firstRow; i < firstRow + puzzle->blockNumRow; i++)
 	{
-		for (j = firstCol; j < firstCol + puzzle->blockNumCols; j++)
+		for (j = firstCol; j < firstCol + puzzle->blockNumCol; j++)
 		{
 			colCell = getCell(j+1, i+1); 
             if ((colCell->value == oldValue) && (oldValue != 0)) /* collision with the old value */
@@ -511,7 +501,7 @@ bool validate()
  * fill empty cells using LP
  * fill only legal values with score greater than threshold
  */
-Move* guess(float threshold)
+Move* guess(float threshold, Mode mode)
 {
     Puzzle *LPSolution;
     Cell *cell;
@@ -525,7 +515,7 @@ Move* guess(float threshold)
             cell = getCell(i + 1, j + 1);
             if (!(cell->fixed))
             {
-                set(i + 1, j + 1, LPSolution->board[j][i].value);
+                set(i + 1, j + 1, LPSolution->board[j][i].value, mode);
             }
         }
     }
@@ -600,23 +590,28 @@ void numSolution()
     return;
 }
 
+int numOfEmptyCells() {
+	return puzzle->numOfEmptyCells;
+}
+
 /* values[0] = num of legal values
  * values[i] = 1 if i is legal value and 0 otherwise
  * does not assume values is initialized
  */
 int *numOfCellSol(Cell *cell, int *values);
 
-Move* autoFill()
+Move* autoFill(Mode mode)
 {
     int i, j, k, value;
     Cell *cell;
-    int *values = (int *)calloc((puzzle->blockNumOfCell) + 1, sizeof(int));
-    Puzzle *toFill = &((Puzzle *){0, 0, 0, 0, 0, 0, 0}); /* create new empty puzzle */
+    int *values = (int *)calloc((puzzle->blockNumOfCells) + 1, sizeof(int));
+    Puzzle newPuzzle = {0, 0, 0, 0, 0, 0, 0};
+    Puzzle *toFill = &newPuzzle; /* create new empty puzzle */
 
     toFill->board = (Cell **)calloc(toFill->blockNumOfCells, sizeof(Cell *)); /* create empty board to the new puzzle */
     if (toFill->board == NULL)
     { /* calloc failed */
-        printErrorAndExit(FunctionFailed, "calloc", 0, 0);
+        printError(MemoryAllocFailed, NULL,0,0);
     }
     for (i = 0; i < toFill->blockNumOfCells; i++)
     {
@@ -628,7 +623,7 @@ Move* autoFill()
                 free(toFill->board[j]);
             }
             free(toFill->board);
-            printErrorAndExit(FunctionFailed, "calloc", 0, 0);
+            printError(MemoryAllocFailed, NULL,0,0);
         }
     }
 
@@ -666,7 +661,7 @@ Move* autoFill()
                 value = toFill->board[j][i].value;
                 if (value)
                 {
-                    set(i + 1, j + 1, value);
+                    set(i + 1, j + 1, value, mode);
                 }
             }
         }
@@ -674,7 +669,7 @@ Move* autoFill()
 
     for (i = 0; i < toFill->blockNumOfCells; i++)
     { /* free allocated memory */
-        free(toFill->board[i])
+        free(toFill->board[i]);
     }
     free(toFill->board);
     free(values);

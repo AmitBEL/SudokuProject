@@ -6,6 +6,7 @@
 #include <string.h>
 #include <ctype.h>
 #include "Game.h"
+#include "Generator.h"
 
 Mode getCommand(Mode mode);
 

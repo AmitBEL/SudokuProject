@@ -13,6 +13,9 @@ typedef struct DoublyLinkedList {
    struct DoublyLinkedList *next;
 } DoublyLinkedList;
 
+/*
+ * pre-condition: current=NULL iff it's a new list
+ */
 void insertAfterDoubly(DoublyLinkedList *current, DoublyLinkedList *new);
 
 void deleteCurrentDoubly(DoublyLinkedList *current);

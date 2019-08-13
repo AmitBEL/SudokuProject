@@ -27,7 +27,7 @@ typedef struct Step {
 	struct Step *nextStep;
 } Step;
 
-typedef struct {
+typedef struct Puzzle {
 	Cell **board;
 	int blockNumRow;
 	int blockNumCol;

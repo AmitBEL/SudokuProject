@@ -1,6 +1,8 @@
 #include "Parser.h"
 
-int mark_errors = 1, last_mark_errors = 1; /* as in page 3 */
+Step *movesList, *currentMove;
+
+int mark_errors = 1, last_mark_errors = 1;
 
 bool EditType(char* optional, Mode mode) {
 	return (optional == NULL ? editNew() : editFile(optional, mode));
@@ -31,18 +33,14 @@ Mode getCommand(Mode mode) {
 	char *fgetsRetVal, *token, *param1, *param2, *param3, *param4;
 	int x, y, z, numOfSuccessfulScan;
 	double xDouble;
-
-	/* handle user input */
-	/* notes:
-	 * need to print board as in page 4!
-	 * after printing board, read another command as in page 4!
-	 */
+	Move *moves;
 
 	/*
-	 * read a coammnd from the user, each line is command
-	 * command with more than 256 chars are invalid
-	 * consider EOF as "exit"
-	 * ignore empty command (also empty lines, because each line is command)
+	 * handle user input:
+	 * 1. read a coammnd from the user, each line is command
+	 * 2. command with more than 256 chars are invalid
+	 * 3. consider EOF as "exit"
+	 * 4. ignore empty command (also empty lines, because each line is command)
 	 */
 	fgetsRetVal = fgets(input, MAX_INPUT_CHARS, stdin);
 
@@ -80,7 +78,6 @@ When several errors exist for the same command, follow this order:
 notes for myself:
 1. if fgets in load fails this error belongs to parameter 5
 2. no need to check validity of path (when exists, if not exists it's an error)
-3. check number of parameters
 	 *****************************/
 
 	param1=strtok(NULL, delimiter);
@@ -105,6 +102,8 @@ notes for myself:
 		}
 		if (solve(param1, mode)){ /* assumption: change to new game iff new game loading succeeded */
 			mark_errors = last_mark_errors;
+			resetStepsList(); /* moves to the first step and then removes all steps and moves */
+			printBoard(mark_errors);
 			return Solve;
 		}
 		printError(CommandFailed,NULL,0,0);
@@ -116,6 +115,8 @@ notes for myself:
 		}
 		if (EditType(param1, mode)){
 			last_mark_errors=mark_errors;
+			resetStepsList(); /* moves to the first step and then removes all steps and moves */
+			printBoard(mark_errors);
 			return Edit;
 		}
 		printError(CommandFailed,NULL,0,0);
@@ -153,10 +154,18 @@ notes for myself:
 					if (numOfSuccessfulScan == 1 && isNumInRange(y, 1, getBlockNumOfCells())){
 						numOfSuccessfulScan = sscanf(param3, "%d", &z);
 						if (numOfSuccessfulScan == 1){
-							if (set(x, y, z, mode)) /* if board solved start a new game */
+							moves = set(x, y, z, mode);
+							if (moves!=NULL){ /* cell is not fixed */
+								addStep(moves); /* addStep removes the steps from current move to the end and then updates current.nextStep to moves */
+							}
+							if (mode==Solve && isSolved()){ /* if board solved start a new game */
+								printBoard(mark_errors);
 								return Init;
-							else
+							}
+							else{
+								printBoard(mark_errors);
 								return mode;
+							}
 						}
 						else{
 							printError(ParamIsNotNum,"3",0, 0);
@@ -203,7 +212,11 @@ notes for myself:
 				numOfSuccessfulScan = sscanf(token, "%lf", &xDouble);
 				if (numOfSuccessfulScan == 1 && 0.0 <= xDouble && xDouble <= 1.0){
 					if (!isErroneous()){
-						guess(xDouble);
+						moves = guess(xDouble, mode);
+						if (moves!=NULL){ /* could not guess any value */
+							addStep(moves); /* addStep removes the steps from current move to the end and then updates current.nextStep to moves */
+						}
+						printBoard(mark_errors);
 						return mode;
 					}
 					else{
@@ -230,7 +243,12 @@ notes for myself:
 				if (numOfSuccessfulScan == 1 && isNumInRange(x, 0, numOfEmptyCells())){
 					numOfSuccessfulScan = sscanf(param2, "%d", &y);
 					if (numOfSuccessfulScan == 1 && isNumInRange(y, 0, getNumOfCells())){
-						if (!generate(x, y))
+						moves = generate(x, y);
+						if (moves!=NULL){ /* could not generate board */
+							addStep(moves); /* addStep removes the steps from current move to the end and then updates current.nextStep to moves */
+							printBoard(mark_errors);
+						}
+						else
 							printError(GenerationFailed, NULL, 0,0);
 						return mode;
 					}
@@ -257,6 +275,7 @@ notes for myself:
 				if (!undo()){
 					printError(NoMoreUndo, NULL,0,0);
 				}
+				printBoard(mark_errors);
 				return mode;
 			}
 			else{
@@ -272,6 +291,7 @@ notes for myself:
 				if (!redo()){
 					printError(NoMoreRedo, NULL,0,0);
 				}
+				printBoard(mark_errors);
 				return mode;
 			}
 			else{
@@ -398,7 +418,11 @@ notes for myself:
 		if (mode==Solve){
 			if (param1==NULL){
 				if (!isErroneous()){
-					autoFill();
+					moves = autoFill(mode);
+					if (moves!=NULL){ /* could not fill any cell */
+						addStep(moves); /* addStep removes the steps from current move to the end and then updates current.nextStep to moves */
+					}
+					printBoard(mark_errors);
 					return mode;
 				}else{
 					printError(Erroneous,NULL,0,0);
@@ -414,7 +438,8 @@ notes for myself:
 	}else if (strcmp(token, "reset")==0){/*16*/
 		if(mode==Solve||mode==Edit){
 			if (param1==NULL){
-				reset();
+				undoAllSteps();
+				printBoard(mark_errors);
 				return mode;
 			}else{
 				printError(WrongNumOfParams, NULL,0,0);
