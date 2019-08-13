@@ -8,8 +8,6 @@
 
 Puzzle puzzleStrct = {0, 0, 0, 0, 0, 0, 0};
 Puzzle *puzzle = &puzzleStrct;
-Moves* movesList;
-int mark_errors = 1;
 
 int getNumOfRowInBlock()
 {
@@ -147,8 +145,6 @@ void cleanPuzzle()
     puzzle->blockNumOfCells = 0;
     puzzle->numOfCells = 0;
     puzzle->numOfEmptyCells = 0;
-
-    /* TODO - clean undo/redo linked list */
 }
 
 /* load puzzle for solve mode */
@@ -292,13 +288,18 @@ void printBoard(int mark)
  * check if the puzzle can be solved  
  * print a message and update game mode according to the check
  *  */
-Move* set(int x, int y, int z, Mode mode)
+Move** set(int x, int y, int z, Mode mode)
 {
+    Move *head = NULL;
     Cell *cell;
     cell = getCell(x, y);
     if (mode == Solve && cell->fixed)
     {
         printf("Error: cell is fixed\n");
+        return NULL;
+    }
+    if (cell->value==z)
+    {
         return NULL;
     }
     if (cell->value == 0)
@@ -315,9 +316,10 @@ Move* set(int x, int y, int z, Mode mode)
             puzzle->numOfEmptyCells++;
         }
     }
-    calcCollisions(x, y, z);
+    updateCollisions(x, y, z);
+    addToList(x, y, cell->value, z);
     cell->value = z;
-    return NULL;
+    return &head;
 }
 
 bool isSolved()
@@ -377,7 +379,7 @@ void updateRowCollisions(int x, int y, int newValue)
     cell->numOfCollisions = 0; /* initialize cell <x,y> num of collisions */
     for (i=0; i<puzzle->blockNumOfCells; i++)
     {
-        colCell = getCell(i,y);
+        colCell = getCell(i+1,y);
         if ((colCell->value == oldValue) && (oldValue != 0)) /* collision with the old value */
         {
             subCollision(colCell);
@@ -404,7 +406,7 @@ void updateColCollisions(int x, int y, int newValue)
     cell->numOfCollisions = 0; /* initialize cell <x,y> num of collisions */
     for (i=0; i<puzzle->blockNumOfCells; i++)
     {
-        colCell = getCell(x,i);
+        colCell = getCell(x,i+1);
         if ((colCell->value == oldValue) && (oldValue != 0)) /* collision with the old value */
         {
             subCollision(colCell);
@@ -501,8 +503,9 @@ bool validate()
  * fill empty cells using LP
  * fill only legal values with score greater than threshold
  */
-Move* guess(float threshold, Mode mode)
+Move** guess(float threshold, Mode mode)
 {
+    Move *head = NULL;
     Puzzle *LPSolution;
     Cell *cell;
     int i, j;
@@ -515,11 +518,11 @@ Move* guess(float threshold, Mode mode)
             cell = getCell(i + 1, j + 1);
             if (!(cell->fixed))
             {
-                set(i + 1, j + 1, LPSolution->board[j][i].value, mode);
+                concate (&head, set(i + 1, j + 1, LPSolution->board[j][i].value, mode));
             }
         }
     }
-    return NULL;
+    return &head;
 }
 
 int undo(); /* depend on the implementation of linked list */
@@ -594,14 +597,67 @@ int numOfEmptyCells() {
 	return puzzle->numOfEmptyCells;
 }
 
+int validCellSol();
+
 /* values[0] = num of legal values
- * values[i] = 1 if i is legal value and 0 otherwise
+ * values[i] = 1 if i is legal value for cell <x,y> and 0 otherwise
  * does not assume values is initialized
  */
-int *numOfCellSol(Cell *cell, int *values);
-
-Move* autoFill(Mode mode)
+int *numOfCellSol(int x, int y, int *values)
 {
+    int i, j, k, value, firstCol, firstRow;
+    Cell *cell;
+    for (i=0; i<puzzle->blockNumOfCells; i++)
+    {
+        values[i+1] = 1;
+    }
+
+    /* update values according to col */
+    for (i=0; i<puzzle->blockNumOfCells; i++)
+    {
+        cell = getCell(x, i+1);
+        value = cell->value;
+        values[value] = 0;
+    }
+
+    /* update values according to row */
+    for (i=0; i<puzzle->blockNumOfCells; i++)
+    {
+        cell = getCell(i+1, y);
+        value = cell->value;
+        values[value] = 0;
+    }
+
+    /* update values according to block */
+    firstCol = firstColInBlock(x-1, puzzle->blockNumCol);
+    firstRow = firstRowInBlock(y-1, puzzle->blockNumRow);
+    for (i = firstRow; i < firstRow + puzzle->blockNumRow; i++)
+	{
+		for (j = firstCol; j < firstCol + puzzle->blockNumCol; j++)
+		{
+			colCell = getCell(j+1, i+1); 
+            value = cell->value;
+            values[value] = 0;
+		}
+	}
+
+    /* update values[0] according to the number of valid cell sol */
+    value = 0;
+    for (i=0; i<puzzle->blockNumOfCells; i++)
+    {
+        if (values[i+1])
+        {
+            value++;
+        }
+    }
+    values[0] = value;
+
+    return values;
+}
+
+Move** autoFill(Mode mode)
+{
+    Move *head = NULL;
     int i, j, k, value;
     Cell *cell;
     int *values = (int *)calloc((puzzle->blockNumOfCells) + 1, sizeof(int));
@@ -634,7 +690,7 @@ Move* autoFill(Mode mode)
             cell = getCell(i, j);
             if (!(cell->value))
             {
-                values = numOfCellSol(cell, values);
+                values = numOfCellSol(i, j, values);
                 if (values[0] == 1)
                 {
                     for (k = 1; k < puzzle->blockNumOfCells; k++)
@@ -661,7 +717,7 @@ Move* autoFill(Mode mode)
                 value = toFill->board[j][i].value;
                 if (value)
                 {
-                    set(i + 1, j + 1, value, mode);
+                    concate(&head, set(i + 1, j + 1, value, mode));
                 }
             }
         }
@@ -674,7 +730,7 @@ Move* autoFill(Mode mode)
     free(toFill->board);
     free(values);
 
-    return NULL;
+    return &head;
 }
 
 void reset()

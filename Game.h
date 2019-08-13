@@ -22,23 +22,21 @@ void markErrors(int mark);
 
 void printBoard();
 
-Move* set(int x, int y, int z, Mode mode);
+Move** set(int x, int y, int z, Mode mode);
 
-void updateCollisions(int x, int y, int newValue);
-
-void calcCollisions(int x, int y, int z);
+void updateCollisions(int x, int y, int z, int num);
 
 bool validate();
 
 bool isErroneous();
 
-Move* guess(float threshold, Mode mode);
+Move** guess(float threshold);
 
-Move* generate(int x, int y);
+int generate(int x, int y);
 
-int undo();
+bool undo();
 
-int redo();
+bool redo();
 
 bool save(char* filepath, Mode mode);
 
@@ -46,9 +44,9 @@ void hint(int x, int y);
 
 void guessHint(int x, int y);
 
-void numSolution();
+int numSolution();
 
-Move* autoFill(Mode mode);
+Move** autoFill();
 
 void reset();
 
