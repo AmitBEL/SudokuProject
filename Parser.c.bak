@@ -475,7 +475,6 @@ notes for myself:
 	}else if (strcmp(token, "exit")==0){/*17*/
 		if (param1==NULL){
 			Exit();
-			resetStepsList();
 			return mode;
 		}else{
 			printError(WrongNumOfParams, NULL,0,0);

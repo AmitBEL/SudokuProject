@@ -3,8 +3,6 @@
 /* run ILP and return if there is a solution or not */
 int ILPSolvable(Puzzle *puzzle)
 {
-	if (puzzle==NULL)
-		return 1;
     return 1;
 }
 

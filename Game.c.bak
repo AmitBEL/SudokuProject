@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "Game.h"
+#include "Auxilary.h"
+#include "ILP.h"
+#include "Solver.h"
 #include <stdbool.h>
 
 Puzzle puzzleStrct = {0, 0, 0, 0, 0, 0, 0};
@@ -285,7 +288,7 @@ void printBoard(int mark)
  * check if the puzzle can be solved  
  * print a message and update game mode according to the check
  *  */
-Move* set(int x, int y, int z, Mode mode)
+Move** set(int x, int y, int z, Mode mode)
 {
     Move *head = NULL;
     Cell *cell;
@@ -314,9 +317,9 @@ Move* set(int x, int y, int z, Mode mode)
         }
     }
     updateCollisions(x, y, z);
-    addToList(&head, x, y, cell->value, z);
+    addToList(x, y, cell->value, z);
     cell->value = z;
-    return head;
+    return &head;
 }
 
 bool isSolved()
@@ -500,12 +503,11 @@ bool validate()
  * fill empty cells using LP
  * fill only legal values with score greater than threshold
  */
-Move* guess(float threshold, Mode mode)
+Move** guess(float threshold, Mode mode)
 {
     Move *head = NULL;
     Puzzle *LPSolution;
     Cell *cell;
-    Move* m;
     int i, j;
     
     LPSolution = LPSolver(puzzle, threshold);
@@ -516,13 +518,16 @@ Move* guess(float threshold, Mode mode)
             cell = getCell(i + 1, j + 1);
             if (!(cell->fixed))
             {
-            	m=set(i + 1, j + 1, LPSolution->board[j][i].value, mode);
-                concat(&head, &m);
+                concate (&head, set(i + 1, j + 1, LPSolution->board[j][i].value, mode));
+            }
         }
     }
-    }
-    return head;
+    return &head;
 }
+
+int undo(); /* depend on the implementation of linked list */
+
+int redo(); /* depend on the implementation of linked list */
 
 void hint(int x, int y)
 {
@@ -599,8 +604,8 @@ int numOfEmptyCells() {
  */
 int *numOfCellSol(int x, int y, int *values)
 {
-    int i, j, value, firstCol, firstRow;
-    Cell *cell, *colCell;
+    int i, j, k, value, firstCol, firstRow;
+    Cell *cell;
     for (i=0; i<puzzle->blockNumOfCells; i++)
     {
         values[i+1] = 1;
@@ -630,7 +635,7 @@ int *numOfCellSol(int x, int y, int *values)
 		for (j = firstCol; j < firstCol + puzzle->blockNumCol; j++)
 		{
 			colCell = getCell(j+1, i+1); 
-            value = colCell->value;
+            value = cell->value;
             values[value] = 0;
 		}
 	}
@@ -648,15 +653,15 @@ int *numOfCellSol(int x, int y, int *values)
 
     return values;
 }
-Move* autoFill(Mode mode)
+
+Move** autoFill(Mode mode)
 {
-    Move *head = (Move*)calloc(1, sizeof(Move));
+    Move *head = NULL;
     int i, j, k, value;
     Cell *cell;
     int *values = (int *)calloc((puzzle->blockNumOfCells) + 1, sizeof(int));
     Puzzle newPuzzle = {0, 0, 0, 0, 0, 0, 0};
     Puzzle *toFill = &newPuzzle; /* create new empty puzzle */
-    Move* m;
 
     toFill->board = (Cell **)calloc(toFill->blockNumOfCells, sizeof(Cell *)); /* create empty board to the new puzzle */
     if (toFill->board == NULL)
@@ -711,8 +716,7 @@ Move* autoFill(Mode mode)
                 value = toFill->board[j][i].value;
                 if (value)
                 {
-                	m=set(i + 1, j + 1, value, mode);
-                    concat(&head, &m);
+                    concate(&head, set(i + 1, j + 1, value, mode));
                 }
             }
         }
@@ -725,7 +729,16 @@ Move* autoFill(Mode mode)
     free(toFill->board);
     free(values);
 
-    return head;
+    return &head;
+}
+
+void reset()
+{
+    int success = 1;
+    while (success)
+    {
+        success = undo();
+    }
 }
 
 void Exit()

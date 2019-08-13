@@ -10,16 +10,4 @@
 
 Mode getCommand(Mode mode);
 
-void undoAllSteps();
-
-void addStep(Move *moves);
-
-void resetStepsList();
-
-void undoAllSteps();
-
-bool undo();
-
-bool redo();
-
 #endif

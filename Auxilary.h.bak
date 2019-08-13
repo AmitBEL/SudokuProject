@@ -2,8 +2,7 @@
 #define AUXILARY_H_
 
 #include "ErrorHandler.h"
-#include "SingleLinkedList.h"
-#include "DoublyLinkedList.h"
+#include "LinkedList.h"
 #include "Stack.h"
 
 typedef enum Mode {Init, Edit, Solve} Mode;
@@ -13,7 +12,7 @@ typedef struct Cell {
 	int value;
 	int numOfCollisions;
 } Cell;
-/*
+
 typedef struct Move {
 	int x;
 	int y;
@@ -21,14 +20,13 @@ typedef struct Move {
 	int newValue;
 	struct Move *nextMove;
 } Move;
-*/
-/*
+
 typedef struct Step {
 	Move *move;
 	struct Step *prevStep;
 	struct Step *nextStep;
 } Step;
-*/
+
 typedef struct Puzzle {
 	Cell **board;
 	int blockNumRow;
