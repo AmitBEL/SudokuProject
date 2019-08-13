@@ -6,9 +6,9 @@
 #include "Solver.h"
 #include <stdbool.h>
 
-Puzzle *puzzle = &((Puzzle){0, 0, 0, 0, 0, 0, 0});
+Puzzle* puzzle = &((Puzzle){0, 0, 0, 0, 0, 0, 0});
 
-Moves *movesList;
+Moves* movesList;
 
 int mark_errors = 1;
 
@@ -302,14 +302,14 @@ void printBoard(int mark)
  * check if the puzzle can be solved  
  * print a messaage and update game mode according to the check
  *  */
-bool set(int x, int y, int z, Mode mode)
+Move* set(int x, int y, int z, Mode mode)
 {
     Cell *cell;
     cell = getCell(x, y);
     if (mode == SOLVE && cell->fixed)
     {
         printf("Error: cell is fixed\n");
-        return false;
+        return NULL;
     }
     if (cell->value == 0)
     {
@@ -327,19 +327,21 @@ bool set(int x, int y, int z, Mode mode)
     }
     calcCollisions(x, y, z);
     cell->value = z;
-    if (mode==SOLVE)
+    return NULL;
+}
+
+bool isSolved()
+{
+    if (!(puzzle->numOfEmptyCells))
     {
-        if (!(puzzle->numOfEmptyCells))
+        if (puzzle->numOfErroneous)
         {
-            if (puzzle->numOfErroneous)
-            {
-                printf("The solution is erroneous.\n");
-            }
-            else
-            {
-                printf("Puzzle solved successfully\n");
-                return true;
-            }
+            printf("The solution is erroneous.\n");
+        }
+        else
+        {
+            printf("Puzzle solved successfully\n");
+            return true;
         }
     }
     return false;
@@ -509,7 +511,7 @@ bool validate()
  * fill empty cells using LP
  * fill only legal values with score greater than threshold
  */
-void guess(float threshold)
+Move* guess(float threshold)
 {
     Puzzle *LPSolution;
     Cell *cell;
@@ -527,7 +529,7 @@ void guess(float threshold)
             }
         }
     }
-    return;
+    return NULL;
 }
 
 int undo(); /* depend on the implementation of linked list */
@@ -604,7 +606,7 @@ void numSolution()
  */
 int *numOfCellSol(Cell *cell, int *values);
 
-void autoFill()
+Move* autoFill()
 {
     int i, j, k, value;
     Cell *cell;
@@ -676,6 +678,8 @@ void autoFill()
     }
     free(toFill->board);
     free(values);
+
+    return NULL;
 }
 
 void reset()

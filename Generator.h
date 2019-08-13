@@ -1,6 +1,7 @@
 #ifndef GENERATOR_H_
-#define GENERATOR_H_
+#define GENERATOR_H_ 
+#include "Auxilary.h"
 
-void generate(int x, int y);
+Move* generate(int x, int y);
 
 #endif
