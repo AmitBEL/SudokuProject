@@ -26,36 +26,63 @@ int getNumOfCells()
     return (puzzle->numOfCells);
 }
 
+/*
+ * initialize puzzle fields - free allocated memory
+ * pre-condition: puzzle->board!=NULL
+ */
+void cleanPuzzle()
+{
+    int i;
+    for (i = 0; i < puzzle->blockNumOfCells; i++)
+    {
+        free(puzzle->board[i]);
+    }
+    /* ensure that memory was allocated for board before.
+     * why we need it:
+     * assuming loading a file failed (non-exist file), we don't need to free the board again
+     * because we didn't try to allocate memory */
+    if (puzzle->blockNumOfCells>0)
+    	free(puzzle->board);
+    puzzle->blockNumCol = 0;
+    puzzle->blockNumRow = 0;
+    puzzle->blockNumOfCells = 0;
+    puzzle->numOfCells = 0;
+    puzzle->numOfEmptyCells = 0;
+}
+
 bool fillBoard(FILE* fp, Mode mode) {
-	int i, j, N=puzzle->blockNumOfCells;
-	char str[21]={0}; /* max num is 2^64 and its length is 20 chars (+1 for \0 char) */
+	int i, j, N=puzzle->blockNumOfCells, newValue;
+	char ch;
 	Cell *cell;
 
 	for(i=0;i<N;i++){
 		for(j=0;j<N;j++){
 			cell = getCell(j+1, i+1);
-			/*
-			 * read every number as string.
-			 * read the string as number and assign it as value (sscanf reads number with "." in the end as ".0" and thus reads the number as int).
-			 * set as fixed if last char in string is ".".
-			 */
-			if (fscanf(fp, "%s", str)==1) {
-				if (sscanf(str, "%d", &(cell->value))==1) {
-					if (str[((int)strlen(str))-1]=='.' && mode==Solve)
+			if (fscanf(fp, "%d", &newValue)!=1)
+				return false;
+			if (!isNumInRange(newValue, 0, N))
+				return false;
+			/*printf("%d\n", newValue);*/
+			if (newValue!=0) {
+				puzzle->numOfEmptyCells--;
+				updateCollisions(j+1, i+1, newValue);
+				cell->value = newValue;
+				if(fscanf(fp, "%c", &ch)==1){
+					if (ch=='.' && mode==Solve) /* cell is not fixed when loading in edit mode */
 						cell->fixed=1;
 				}
-				else
-					return false;
 			}
-			else
-				return false;
 		}
 	}
+	/*
+	solve C:\\sudoku\\in8.txt should fail
+	if (hasErroneousFixedCells() && mode==Solve)
+		return false;
+	*/
 	return true;
 }
 
 /*
- * should detect erroneous values in board? (erroneous board can be saved in solve mode)
  * return true if assignment to board succeeded,
  * otherwise return false (failure in this function is treated as function failed, parameter 5 in parser.c)
  * notes:
@@ -64,22 +91,33 @@ bool fillBoard(FILE* fp, Mode mode) {
 bool load(char* filepath, Mode mode) {
 	FILE* fp;
 	int m,n;
-	char line[MAX_FIRST_LINE_LENGTH];
-
 
 	fp = fopen(filepath, "r");
-	if (fp == NULL)
+	if (fp == NULL) {
+		printError(ReadingFileFailed, NULL, 0, 0);
 		return false;
+	}
 
-	fgets(line, MAX_FIRST_LINE_LENGTH, fp);
-	if (sscanf(line, "%d %d", &m, &n)!=2)
+	if (fscanf(fp, "%d %d", &m, &n)!=2) {
+		printError(ReadingFileFailed, NULL, 0, 0);
+		fclose(fp);
 		return false;
-	puzzle->blockNumRow = m;
-	puzzle->blockNumCol = n;
+	}
 
-	createBoard(puzzle->blockNumRow, puzzle->blockNumCol);
-	if (!fillBoard(fp, mode))
+	if (m*n>99){
+		fclose(fp);
+		printError(BigBoard, NULL,0,0);
 		return false;
+	}
+
+	createBoard(m, n);
+	if (!fillBoard(fp, mode)) {
+		if (puzzle->board!=NULL)
+			cleanPuzzle();
+		printError(IllegalBoard, NULL, 0, 0);
+		fclose(fp);
+		return false;
+	}
 
 	fclose(fp);
 
@@ -128,22 +166,6 @@ Cell* getCell(int x, int y)
     return (&(puzzle->board[row][col]));
 }
 
-/* initialize puzzle fields - free allocated memory */
-void cleanPuzzle()
-{
-    int i;
-    for (i = 0; i < puzzle->blockNumOfCells; i++)
-    {
-        free(puzzle->board[i]);
-    }
-    free(puzzle->board);
-    puzzle->blockNumCol = 0;
-    puzzle->blockNumRow = 0;
-    puzzle->blockNumOfCells = 0;
-    puzzle->numOfCells = 0;
-    puzzle->numOfEmptyCells = 0;
-}
-
 /* load puzzle for solve mode */
 bool solve(char *filepath, Mode mode)
 {
@@ -151,7 +173,8 @@ bool solve(char *filepath, Mode mode)
     {
         cleanPuzzle();
     }
-    return (load(filepath, mode));
+
+    return load(filepath, mode);
 }
 
 /* create new empty puzzle board */
@@ -321,19 +344,7 @@ Move* set(int x, int y, int z, Mode mode)
 
 bool isSolved()
     {
-        if (!(puzzle->numOfEmptyCells))
-        {
-            if (puzzle->numOfErroneous)
-            {
-                printf("The solution is erroneous.\n");
-            }
-            else
-            {
-                printf("Puzzle solved successfully\n");
-            return true;
-            }
-        }
-    return false;
+	return (!(puzzle->numOfEmptyCells) && !isErroneous() ? true : false);
 }
 
 /* 
@@ -491,22 +502,23 @@ void updateCollisions(int x, int y, int newValue)
     updateBlockCollisions(x, y, newValue);
 }
 
-bool isErroneous()
-{
+bool isErroneous() {
     return (puzzle->numOfErroneous > 0 ? true : false);
 }
 
 /* check if the board is solvable */
-bool validate()
+bool validate(bool printResult)
 {
     if (ILPSolvable(puzzle))
     {
-        printf("Validation passed: board is solvable\n");
+    	if (printResult)
+    		printf("Validation passed: board is solvable\n");
         return true;
     }
     else
     {
-        printf("Validation failed: board is unsolvable\n");
+    	if (printResult)
+    		printf("Validation failed: board is unsolvable\n");
         return false;
     }
 }
@@ -606,7 +618,6 @@ void numSolution()
 int numOfEmptyCells() {
 	return puzzle->numOfEmptyCells;
 }
-
 
 /* values[0] = num of legal values
  * values[i] = 1 if i is legal value for cell <x,y> and 0 otherwise
@@ -745,7 +756,8 @@ Move* autoFill(Mode mode)
 
 void Exit()
 {
-    cleanPuzzle();
+	if (puzzle->board!=NULL)
+		cleanPuzzle();
     printf("Exiting...\n");
     exit(0);
 }

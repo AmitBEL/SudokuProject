@@ -43,14 +43,6 @@ void UpdateMarkErrors(char* value) {
 	}
 }
 
-/*
- * Check whether numOfFixed is between minNum and maxNum
- * Return true if it is
- */
-bool isNumInRange(int num, int minNum, int maxNum) {
-	return (minNum <= num && num <= maxNum);
-}
-
 Mode getCommand(Mode mode) {
 	char input[MAX_INPUT_CHARS];
 	char delimiter[]=" \t\r";
@@ -66,12 +58,20 @@ Mode getCommand(Mode mode) {
 	 * 3. consider EOF as "exit"
 	 * 4. ignore empty command (also empty lines, because each line is command)
 	 */
+
+	if (mode==Init)
+		printf("Welcome sudoku game!");
+
+	printf("\nEnter a command:\n");
 	fgetsRetVal = fgets(input, MAX_INPUT_CHARS, stdin);
 
-	if (input[MAX_INPUT_CHARS-2]!='\n' && input[MAX_INPUT_CHARS-2]!='\0'){ /* ensure command length <= 256 chars */
+	if (input[MAX_INPUT_CHARS-2]!='\n' && input[MAX_INPUT_CHARS-2]!='\0'){ /* ensure 1<=command-length<=256 chars */
 		printError(TooLongInput, NULL, 0, 0);
 		return mode;
 	}
+
+	/* trim \n of enter in the end of the user input */
+	input[strlen(input)-1] = '\0';
 
 	if (fgetsRetVal != NULL) {
 		token = strtok(input, delimiter);
@@ -98,17 +98,12 @@ When several errors exist for the same command, follow this order:
       b. Its value is legal for the current board state
 4. The board is valid for the command (e.g., the board is not erroneous for "autofill").
 5. The command is executed successfully (e.g., "save" command fails writing to the file)
-
-notes for myself:
-1. if fgets in load fails this error belongs to parameter 5
-2. no need to check validity of path (when exists, if not exists it's an error)
 	 *****************************/
 
 	param1=strtok(NULL, delimiter);
 	param2=strtok(NULL, delimiter);
 	param3=strtok(NULL, delimiter);
 	param4=strtok(NULL, delimiter);
-	/* here "command=NULL" means invalid parameters/unavailable command */
 
 	/* check if (correct num of param +1)!=NULL to determine if there are too many parameters
 	 * for example, if (correct num of param)=1 and (param1==NULL || (param1!=NULL && param2!=NULL)),
@@ -130,7 +125,7 @@ notes for myself:
 			printBoard(mark_errors);
 			return Solve;
 		}
-		printError(CommandFailed,NULL,0,0);
+		/* for many failure options, function solve handles its own errors */
 		return mode;
 	} else if (strcmp(token, "edit")==0) {/*2*/
 		if (param1!=NULL && param2!=NULL){ /* has 0/1 params */
@@ -182,12 +177,14 @@ notes for myself:
 							if (moves!=NULL){ /* cell is not fixed */
 								addStep(moves); /* addStep removes the steps from current move to the end and then updates current.nextStep to moves */
 							}
+							printBoard(mark_errors);
 							if (mode==Solve && isSolved()){ /* if board solved start a new game */
-								printBoard(mark_errors);
+								printf("Puzzle solved successfully!\n");
 								return Init;
 							}
 							else{
-								printBoard(mark_errors);
+								if (mode==Solve && !numOfEmptyCells() && isErroneous())
+									printf("Board is erroneous!\n");
 								return mode;
 							}
 						}
@@ -216,13 +213,11 @@ notes for myself:
 	}else if (strcmp(token, "validate")==0){/*6*/
 		if(mode==Solve || mode==Edit){
 			if (param1==NULL){
-				if (!isErroneous()){
-					validate();
-					return mode;
-				}
-				else{
+				if (!isErroneous())
+					validate(true);
+				else
 					printError(Erroneous, NULL,0,0);
-				}
+				return mode;
 			}else{
 				printError(WrongNumOfParams, NULL,0,0);
 				return mode;
@@ -333,7 +328,7 @@ notes for myself:
 						printError(Erroneous, NULL, 0, 0);
 						return mode;
 					}
-					if (!validate()){
+					if (!validate(false)){
 						printError(Validate, NULL,0,0);
 						return mode;
 					}
@@ -363,7 +358,7 @@ notes for myself:
 							printError(Erroneous, NULL, 0, 0);
 							return mode;
 						}
-						if (!validate()){
+						if (!validate(false)){
 							printError(Validate, NULL,0,0);
 							return mode;
 						}
@@ -398,7 +393,7 @@ notes for myself:
 							printError(Erroneous, NULL, 0, 0);
 							return mode;
 						}
-						if (!validate()){
+						if (!validate(false)){
 							printError(Validate, NULL,0,0);
 							return mode;
 						}
