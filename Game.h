@@ -9,8 +9,6 @@
 #include "ILP.h"
 #include "Solver.h"
 
-#define MAX_FIRST_LINE_LENGTH 10
-
 Cell* getCell(int x, int y);
 
 bool solve(char* filepath, Mode mode);
@@ -29,9 +27,11 @@ Move* set(int x, int y, int z, Mode mode);
 
 void updateCollisions(int x, int y, int newValue);
 
-bool validate();
+bool validate(bool printResult);
 
 bool isErroneous();
+
+bool hasErroneousFixedCells();
 
 Move* guess(float threshold, Mode mode);
 /*

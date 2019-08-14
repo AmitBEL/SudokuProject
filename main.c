@@ -4,7 +4,7 @@
 #include "SPBufferset.h"
 
 int main() {
-	int mode = 0; /* can't use enum Mode */
+	Mode mode = Init;
 
 	SP_BUFF_SET();
 
