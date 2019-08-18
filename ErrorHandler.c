@@ -6,53 +6,56 @@
  * https://moodle.tau.ac.il/mod/forum/discuss.php?d=88531
  * need to change:
  * 1. exit only when cannot recover from error (e.g. memory allocation)
- * 2. add error about number of parameters
  */
 void printError(ErrorMsg err, char* param1, int bound1, int bound2) {
 	printf("Error: ");
 	if (err == InvalidCommand)
-		printf("Invalid Command");
+		printf("invalid command");
 	else if (err == IndexOutOfBounds)
-		printf("Parameter Out Of Bounds. Bounds: %d-%d", bound1, bound2);
+		printf("parameter out of bounds. Bounds: %d-%d", bound1, bound2);
 	else if (err == TooLongInput)
-		printf("Max Number Of Characters: %d", MAX_INPUT_CHARS);
+		printf("max number of characters: %d", MAX_INPUT_CHARS);
 	else if (err == FunctionFailed)
-		printf("Function %s Has Failed", param1);
+		printf("function %s has failed", param1);
 	else if (err == MemoryAllocFailed) {
-		printf("Memory Allocation Failed");
+		printf("memory allocation failed");
 	} else if (err == ReadingFileFailed)
-		printf("Reading File Failed");
+		printf("reading file failed");
 	else if (err == WritingFileFailed)
-		printf("Writing File Failed");
+		printf("writing file failed");
 	else if (err == Erroneous)
-		printf("Board Is Erroneous");
+		printf("board is erroneous");
 	else if (err == Validate)
-		printf("Board Has No Solution");
+		printf("board has no solution");
 	else if (err == WrongNumOfParams)
-		printf("Wrong Number Of Parameters, The Correct Number Of Parameters Is %d", bound1);
+		printf("wrong number of parameters. The correct number of parameters is %d", bound1);
 	else if (err == WrongNumOfParamsBounds)
-		printf("Wrong Number Of Parameters, The Correct Number Of Parameters Is %d or %d", bound1, bound2);
+		printf("wrong number of parameters. The correct number of parameters is %d or %d", bound1, bound2);
 	else if (err == CommandFailed)
-		printf("Command Failed");
+		printf("command failed");
 	else if (err == WrongMode)
-		printf("The Command Is Available Only In Mode(s) %s", param1);
+		printf("the command is available only in mode(s) %s", param1);
 	else if (err == ParamOutOfBounds)
-		printf("Parameter %s Out Of Bounds. Bounds: %d-%d", param1, bound1, bound2);
+		printf("parameter %s out of bounds. Bounds: %d-%d", param1, bound1, bound2);
 	else if (err == ParamIsNotNum)
-		printf("Parameter %s Must Be A Number", param1);
+		printf("parameter %s must be a number", param1);
 	else if (err == EmptyCellsParamRange)
-		printf("Number Of Empty Cells For Parameter %s: %d-%d", param1, bound1, bound2);
+		printf("number of empty cells for parameter %s: %d-%d", param1, bound1, bound2);
 	else if (err == GenerationFailed)
-		printf("Puzzle Generator Has Failed");
+		printf("puzzle generator has failed");
 	else if (err == NoMoreUndo)
-		printf("No Moves To Undo Left");
+		printf("no moves to undo left");
 	else if (err == NoMoreRedo)
-		printf("No Moves To Redo Left");
+		printf("no moves to redo left");
 	else if (err == FixedCell)
-		printf("Cell Is Fixed");
+		printf("cell is fixed");
 	else if (err == CellHasValue)
-		printf("Cell Has Value");
+		printf("cell has value");
+	else if (err == BigBoard)
+		printf("board is too big. Max cell value must be at most 99");
+	else if (err == IllegalBoard)
+		printf("illegal board");
 	else
-		printf("No Data About Error Found");
+		printf("no data about error found");
 	printf("\n");
 }

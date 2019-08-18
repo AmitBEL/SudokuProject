@@ -39,4 +39,6 @@ typedef struct Puzzle {
 	int numOfErroneous;
 } Puzzle;
 
+bool isNumInRange(int num, int minNum, int maxNum);
+
 #endif
