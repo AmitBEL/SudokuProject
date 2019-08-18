@@ -5,4 +5,6 @@
 
 int backtrack(Puzzle *puzzle);
 
+int choice(int *options, int size);
+
 #endif

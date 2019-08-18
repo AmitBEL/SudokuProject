@@ -316,11 +316,11 @@ Move* set(int x, int y, int z, Mode mode)
     if (mode == Solve && cell->fixed)
     {
         printf("Error: cell is fixed\n");
-        return NULL;
+        return head;
     }
     if (cell->value==z)
     {
-        return NULL;
+        return head;
     }
     if (cell->value == 0)
     {
@@ -495,8 +495,12 @@ void updateBlockCollisions(int x, int y, int newValue)
 /* update collisions of the new and old values */
 void updateCollisions(int x, int y, int newValue)
 {
-	Cell* cell=getCell(x,y);
-	cell->numOfCollisions=0;
+    Cell* cell=getCell(x,y);
+    if (cell->numOfCollisions)
+    {
+        puzzle->numOfErroneous--;
+    }
+    cell->numOfCollisions=0;
     updateRowCollisions(x, y, newValue);
     updateColCollisions(x, y, newValue);
     updateBlockCollisions(x, y, newValue);
@@ -621,12 +625,33 @@ int numOfEmptyCells() {
 
 /* values[0] = num of legal values
  * values[i] = 1 if i is legal value for cell <x,y> and 0 otherwise
+ * if cell <x,y> value is v!=0 return values[0]=values[v]=1 and 0 anywhere else
  * does not assume values is initialized
  */
 int *numOfCellSol(int x, int y, int *values)
 {
     int i, j, value, firstCol, firstRow;
     Cell *cell, *colCell;
+
+    cell = getCell(x, y);
+    if (cell->value) /* cell is not empty */
+    {
+        values[0]=1;
+        for (i=0; i<puzzle->blockNumOfCells; i++)
+        {
+            if (cell->value==i+1)
+            {
+                values[i+1]=1;
+            }
+            else
+            {
+                values[i+1]=0;
+            }
+            
+        }
+        return values; 
+    }
+
     for (i=0; i<puzzle->blockNumOfCells; i++)
     {
         values[i+1] = 1;
@@ -674,6 +699,7 @@ int *numOfCellSol(int x, int y, int *values)
 
     return values;
 }
+
 Move* autoFill(Mode mode)
 {
     Move *head = (Move*)calloc(1, sizeof(Move));

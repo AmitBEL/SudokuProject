@@ -13,12 +13,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include "Game.h"
 
 #define MAX_SIZE 10000
 
 typedef struct StackNode
 {
-	int value;
+	int col;
+	int row;
+	int *options;
 	struct StackNode *next;
 } StackNode;
 
@@ -30,11 +33,17 @@ typedef struct Stack
 
 void init(Stack *stk);
 
-bool push(int value, Stack *stk);
+bool push(int col, int row, Stack *stk);
 
 int pop(Stack *stk);
 
 int top(Stack *stk);
+
+int topCol(Stack *stk);
+
+int topRow(Stack *stk);
+
+int topOption(Stack *stk);
 
 bool isEmpty(Stack *stk);
 

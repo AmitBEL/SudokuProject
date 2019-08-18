@@ -69,4 +69,6 @@ int getNumOfCells();
 
 bool isSolved();
 
+int *numOfCellSol(int x, int y, int *values);
+
 #endif
