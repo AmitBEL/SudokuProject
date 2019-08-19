@@ -5,9 +5,9 @@ void init(Stack *stk) {
 	stk->top = NULL;
 }
 
-bool push(Puzzle *puzzle, int col, int row, int blockNumOfCells, Stack *stk) {
+bool push(Puzzle *puzzle, int col, int row, Stack *stk) {
 	StackNode *p = NULL;
-	int *values = (int*)calloc(blockNumOfCells+1, sizeof(int));
+	int *values = (int*)calloc(puzzle->blockNumOfCells+1, sizeof(int));
 	p = (StackNode*)calloc(1, sizeof(StackNode));
 	if (p != NULL) { /* otherwise calloc failed */
 		p->col = col;

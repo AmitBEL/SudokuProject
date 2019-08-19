@@ -30,7 +30,7 @@ typedef struct Stack
 
 void init(Stack *stk);
 
-bool push(Puzzle *puzzle, int col, int row, int blockNumOfCells, Stack *stk);
+bool push(Puzzle *puzzle, int col, int row, Stack *stk);
 
 int pop(Stack *stk);
 
