@@ -1,7 +1,8 @@
 #ifndef GENERATOR_H_
 #define GENERATOR_H_
 
-#include "Auxilary.h"
+#include <stdlib.h>
+#include "ILP.h"
 
 Move* generate(int x, int y);
 

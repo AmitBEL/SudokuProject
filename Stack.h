@@ -2,9 +2,8 @@
  * how to use:
  * 1. create Stack object s
  * 2. call init(&s)
- * 3. check !isFull before calling push
- * 4. check !isEmpty before calling pop
- * 5. notice: always use a pointer to Stack object as argument
+ * 3. check !isEmpty before calling pop
+ * 4. notice: always use a pointer to Stack object as argument
  */
 
 #ifndef STACK_H_
@@ -13,9 +12,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include "Game.h"
-
-#define MAX_SIZE 10000
+#include "Auxilary.h"
 
 typedef struct StackNode
 {
@@ -33,7 +30,7 @@ typedef struct Stack
 
 void init(Stack *stk);
 
-bool push(int col, int row, Stack *stk);
+bool push(Puzzle *puzzle, int col, int row, int blockNumOfCells, Stack *stk);
 
 int pop(Stack *stk);
 
@@ -46,7 +43,5 @@ int topRow(Stack *stk);
 int topOption(Stack *stk);
 
 bool isEmpty(Stack *stk);
-
-bool isFull(Stack *stk);
 
 #endif

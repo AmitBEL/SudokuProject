@@ -16,9 +16,11 @@ void print_list(Move * head) {
 	Move * current = head;
 
     while (current != NULL) {
-        printf("%d, %d, %d, %d\n", current->x, current->y, current->oldValue, current->newValue);
+        printf("  <%d,%d>: %d -> %d\n", current->x, current->y, current->oldValue, current->newValue);
         current = current->next;
     }
+
+    printf("NULL\n");
 }
 
 void deleteList(Move *head) {
@@ -35,6 +37,11 @@ void deleteList(Move *head) {
 void concat(Move** head1, Move** head2) {
 	if (head1!=NULL && head2 != NULL) {
 		Move *current=*head1;
+		if (*head1==NULL && *head2!=NULL)
+		{
+			*head1=*head2;
+			return;
+		}
 		while(current->next!=NULL) {
 			current = current->next;
 		}

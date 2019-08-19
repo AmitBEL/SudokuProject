@@ -5,14 +5,14 @@ void init(Stack *stk) {
 	stk->top = NULL;
 }
 
-bool push(int col, int row, Stack *stk) {
+bool push(Puzzle *puzzle, int col, int row, int blockNumOfCells, Stack *stk) {
 	StackNode *p = NULL;
-	int *values = (int*)calloc(getBlockNumOfCells()+1, sizeof(int));
+	int *values = (int*)calloc(blockNumOfCells+1, sizeof(int));
 	p = (StackNode*)calloc(1, sizeof(StackNode));
 	if (p != NULL) { /* otherwise calloc failed */
 		p->col = col;
 		p->row = row;
-		p->options = numOfCellSol(col, row, values);
+		p->options = numOfCellSol(puzzle, col, row, values);
 		p->next = stk->top;
 		stk->top = p;
 		stk->size++;
@@ -50,8 +50,4 @@ int topOption(Stack *stk) {
 
 bool isEmpty(Stack *stk) {
 	return (stk->size == 0 ? true : false);
-}
-
-bool isFull(Stack *stk) {
-	return (stk->size == MAX_SIZE ? true : false);
 }
