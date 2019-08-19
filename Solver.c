@@ -33,9 +33,9 @@ int nextCellRow(int col, int row, int blockNumOfCells)
 
 int backtrack(Puzzle *puzzle)
 {
-	int c, col, row, cnt=0;
+	int c, col=0, row=0, cnt=0;
 	Cell *cell;
-	bool success, found=false, end = false;
+	bool success=true, found=false, end = false;
 	Stack *stk = (Stack*)calloc(1, sizeof(Stack));
 
 	if(puzzle->numOfEmptyCells==0) /* there are not any empty cells */
@@ -45,44 +45,9 @@ int backtrack(Puzzle *puzzle)
 	}
 
 	init(stk);
-
-	found = false;
-	col = 1;
-	row = 1;
-	cell = getCell(puzzle, col, row);
-	while (!found) /* search for the first empty cell */
-	{
-		if (cell->value==0) /* found the first empty cell */
-		{
-			found = true;
-			push(puzzle, col, row, puzzle->blockNumOfCells, stk);
-			c = choice(stk->top->options, puzzle->blockNumOfCells+1);
-			if (c==0) /* there is not a valid option */
-			{
-				success = false;
-				
-			}
-			else /* there is a valid option */
-			{
-				setCell(puzzle, col, row, c, Edit);
-				success = true;
-			}
-		}
-		else /* continue to search */
-		{
-			col = nextCellCol(col, puzzle->blockNumOfCells);
-			row = nextCellRow(col, row, puzzle->blockNumOfCells);
-			cell = getCell(puzzle, col, row);
-		}
-		
-	}
 	
-	while (!isEmpty(stk))
+	do
 	{
-		col = topCol(stk);
-		row = topRow(stk);
-		cell = getCell(puzzle, col, row);
-
 		if( !success || end) /* invalid cell solution or last cell */
 		{
 			c = cell->value;
@@ -119,12 +84,19 @@ int backtrack(Puzzle *puzzle)
 					if (cell->value==0)
 					{
 						found = true;
-						push(puzzle, col, row, puzzle->blockNumOfCells, stk);
+						push(puzzle, col, row, stk);
 						c = choice(stk->top->options, puzzle->blockNumOfCells+1);
 						if (c==0)
 						{
-							pop(stk);
-							success = false;
+							if(isEmpty(stk))
+							{
+								return 0;
+							}
+							else
+							{
+								pop(stk);
+								success = false;
+							}
 						}
 						else
 						{
@@ -139,7 +111,10 @@ int backtrack(Puzzle *puzzle)
 				}
 			} while (!found);
 		}
-	}
+		col = topCol(stk);
+		row = topRow(stk);
+		cell = getCell(puzzle, col, row);
+	} while (!isEmpty(stk));
 	
 	free(stk);
 	return cnt;
