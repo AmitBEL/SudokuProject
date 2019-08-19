@@ -5,12 +5,14 @@ void init(Stack *stk) {
 	stk->top = NULL;
 }
 
-bool push(int value, Stack *stk) {
+bool push(int col, int row, Stack *stk) {
 	StackNode *p = NULL;
-
-	p = malloc(sizeof(StackNode));
-	if (p != NULL) { /* otherwise malloc failed */
-		p->value = value;
+	int *values = (int*)calloc(getBlockNumOfCells()+1, sizeof(int));
+	p = (StackNode*)calloc(1, sizeof(StackNode));
+	if (p != NULL) { /* otherwise calloc failed */
+		p->col = col;
+		p->row = row;
+		p->options = numOfCellSol(col, row, values);
 		p->next = stk->top;
 		stk->top = p;
 		stk->size++;
@@ -21,20 +23,29 @@ bool push(int value, Stack *stk) {
 }
 
 int pop(Stack *stk) {
-	int value;
+	int option;
 	StackNode *p = NULL;
 
-	value = stk->top->value;
+	option = stk->top->options[0];
+	free(stk->top->options);
 	p = stk->top;
 	stk->top = stk->top->next;
 	stk->size--;
 	free(p);
 
-	return value;
+	return option;
 }
 
-int top(Stack *stk) {
-	return (stk->top->value);
+int topCol(Stack *stk) {
+	return (stk->top->col);
+}
+
+int topRow(Stack *stk) {
+	return (stk->top->row);
+}
+
+int topOption(Stack *stk) {
+	return (stk->top->options[0]);
 }
 
 bool isEmpty(Stack *stk) {
