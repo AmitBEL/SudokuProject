@@ -2,11 +2,6 @@
 #include <stdlib.h>
 #include "ErrorHandler.h"
 
-/**
- * https://moodle.tau.ac.il/mod/forum/discuss.php?d=88531
- * need to change:
- * 1. exit only when cannot recover from error (e.g. memory allocation)
- */
 void printError(ErrorMsg err, char* param1, int bound1, int bound2) {
 	printf("Error: ");
 	if (err == InvalidCommand)
@@ -53,6 +48,8 @@ void printError(ErrorMsg err, char* param1, int bound1, int bound2) {
 		printf("cell has value");
 	else if (err == BigBoard)
 		printf("board is too big. Max cell value must be at most 99");
+	else if (err == DimNotPositive)
+		printf("board dimensions must be positive");
 	else if (err == IllegalBoard)
 		printf("illegal board");
 	else
