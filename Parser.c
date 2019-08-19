@@ -1,19 +1,93 @@
 #include "Parser.h"
 
-Step *stepsList=NULL, *currentMove=NULL;
+Step *stepsList=NULL, *currentMove=NULL; /* currentMove=NULL iff (stepsList=NULL || no more steps left to undo) */
 
 int mark_errors = 1, last_mark_errors = 1;
 
-void undoAllSteps(){
+void undoAllSteps(Mode mode){
+	bool makeUndo=true;
+	while (makeUndo)
+		makeUndo=undo(mode);
 
+
+	if (currentMove==NULL)
+		printf("currentMove=NULL\n");
+	else
+		printf("currentMove=<%d,%d>\n", currentMove->moves->x, currentMove->moves->y);
+	printList(stepsList);
 }
 
-bool undo(){
-	return true;
+bool undo(Mode mode){
+	Move *moves;
+	if (stepsList==NULL) /* currentMove=NULL too, the list is empty */
+		return false;
+	else if (currentMove==NULL) /* user made undo to all steps */
+		return false;
+	else{
+		moves = currentMove->moves;
+		while (moves!=NULL)
+		{
+			set(moves->x, moves->y, moves->oldValue, mode);
+			moves=moves->next;
+		}
+		/* check if currentMove is not the first */
+		if (currentMove->prev!=NULL)
+			currentMove=currentMove->prev;
+		else
+			currentMove=NULL;
+
+		if (currentMove==NULL)
+			printf("currentMove=NULL\n");
+		else
+			printf("currentMove=<%d,%d>\n", currentMove->moves->x, currentMove->moves->y);
+		printList(stepsList);
+
+		return true;
+	}
 }
 
-bool redo() {
-	return true;
+bool redo(Mode mode) {
+	Move *moves;
+	if (stepsList==NULL) /* currentMove=NULL too, the list is empty */
+		return false;
+	else if (currentMove==NULL) /* user made undo to all steps */
+	{
+		moves=stepsList->moves;
+		while(moves!=NULL)
+		{
+			set(moves->x,moves->y, moves->newValue, mode);
+			moves=moves->next;
+		}
+		currentMove=stepsList;
+
+		if (currentMove==NULL)
+			printf("currentMove=NULL\n");
+		else
+			printf("currentMove=<%d,%d>\n", currentMove->moves->x, currentMove->moves->y);
+		printList(stepsList);
+
+		return true;
+	}
+	else if(currentMove->next!=NULL) /* currentMove is not the last step */
+	{
+		moves=currentMove->next->moves;
+		while(moves!=NULL)
+		{
+			set(moves->x,moves->y, moves->newValue, mode);
+			moves=moves->next;
+		}
+		currentMove=currentMove->next;
+
+		if (currentMove==NULL)
+			printf("currentMove=NULL\n");
+		else
+			printf("currentMove=<%d,%d>\n", currentMove->moves->x, currentMove->moves->y);
+		printList(stepsList);
+
+		return true;
+	}
+	else
+		return false;
 }
 
 void resetStepsList(){
@@ -22,10 +96,52 @@ void resetStepsList(){
 	deleteNode(&stepsList, currentMove);
 	stepsList=NULL;
 	currentMove=NULL;
+
+	if (currentMove==NULL)
+		printf("currentMove=NULL\n");
+	else
+		printf("currentMove=<%d,%d>\n", currentMove->moves->x, currentMove->moves->y);
+	printList(stepsList);
 }
 
 void addStep(Move* moves) {
-	addToDoublyList(&stepsList, moves);
+	if (stepsList==NULL) /* currentMove=NULL too, the list is empty */
+	{
+		addToDoublyList(&stepsList, moves);
+		currentMove=stepsList;
+	}
+	else if (currentMove==NULL) /* user made undo to all steps */
+	{
+		deleteAllNextNodes(&stepsList, stepsList);
+		deleteNode(&stepsList, stepsList);
+		addToDoublyList(&stepsList, moves);
+		currentMove=stepsList;
+	}
+	else /* stepsList!=NULL && currentMove!=NULL (currentMove is at the end of the list) */
+	{
+		deleteAllNextNodes(&stepsList, currentMove);
+		addToDoublyList(&stepsList, moves);
+		currentMove=currentMove->next;
+	}
+
+	if (currentMove==NULL)
+		printf("currentMove=NULL\n");
+	else
+		printf("currentMove=<%d,%d>\n", currentMove->moves->x, currentMove->moves->y);
+	printList(stepsList);
+}
+
+Mode isBoardCompleted(Mode mode)
+{
+	if (mode==Solve && isSolved()){ /* if board solved start a new game */
+		printf("Puzzle solved successfully!\n");
+		return Init;
+	}
+	else{
+		if (mode==Solve && !numOfEmptyCells() && isErroneous())
+			printf("Board is erroneous!\n");
+		return mode;
+	}
 }
 
 bool EditType(char* optional, Mode mode) {
@@ -53,7 +169,7 @@ Mode getCommand(Mode mode) {
 
 	/*
 	 * handle user input:
-	 * 1. read a coammnd from the user, each line is command
+	 * 1. read a command from the user, each line is command
 	 * 2. command with more than 256 chars are invalid
 	 * 3. consider EOF as "exit"
 	 * 4. ignore empty command (also empty lines, because each line is command)
@@ -119,26 +235,26 @@ When several errors exist for the same command, follow this order:
 			printError(WrongNumOfParams, NULL,1,0);
 			return mode;
 		}
-		if (solve(param1, mode)){ /* assumption: change to new game iff new game loading succeeded */
+		if (solve(param1, Solve)){ /* assumption: change to new game iff new game loading succeeded */
 			mark_errors = last_mark_errors;
 			resetStepsList(); /* moves to the first step and then removes all steps and moves */
 			printBoard(mark_errors);
 			return Solve;
 		}
-		/* for many failure options, function solve handles its own errors */
+		/* for many failure options, solve function handles its own errors */
 		return mode;
 	} else if (strcmp(token, "edit")==0) {/*2*/
 		if (param1!=NULL && param2!=NULL){ /* has 0/1 params */
 			printError(WrongNumOfParamsBounds, NULL,0,1);
 			return mode;
 		}
-		if (EditType(param1, mode)){
+		if (EditType(param1, Edit)){
 			last_mark_errors=mark_errors;
 			resetStepsList(); /* moves to the first step and then removes all steps and moves */
 			printBoard(mark_errors);
 			return Edit;
 		}
-		printError(CommandFailed,NULL,0,0);
+		/* for many failure options, EditType function handles its own errors */
 		return mode;
 	} else if (strcmp(token, "mark_errors")==0) {/*3*/
 		if (mode==Solve){
@@ -172,24 +288,16 @@ When several errors exist for the same command, follow this order:
 					numOfSuccessfulScan = sscanf(param2, "%d", &y);
 					if (numOfSuccessfulScan == 1 && isNumInRange(y, 1, getBlockNumOfCells())){
 						numOfSuccessfulScan = sscanf(param3, "%d", &z);
-						if (numOfSuccessfulScan == 1){
+						if (numOfSuccessfulScan == 1 && isNumInRange(y, 0, getBlockNumOfCells())){
 							moves = set(x, y, z, mode);
 							if (moves!=NULL){ /* cell is not fixed */
 								addStep(moves); /* addStep removes the steps from current move to the end and then updates current.nextStep to moves */
 							}
 							printBoard(mark_errors);
-							if (mode==Solve && isSolved()){ /* if board solved start a new game */
-								printf("Puzzle solved successfully!\n");
-								return Init;
-							}
-							else{
-								if (mode==Solve && !numOfEmptyCells() && isErroneous())
-									printf("Board is erroneous!\n");
-								return mode;
-							}
+							return isBoardCompleted(mode);
 						}
 						else{
-							printError(ParamIsNotNum,"3",0, 0);
+							printError(ParamOutOfBounds,"3",0, getBlockNumOfCells());
 							return mode;
 						}
 					}
@@ -291,7 +399,7 @@ When several errors exist for the same command, follow this order:
 	}else if (strcmp(token, "undo")==0){/*9*/
 		if (mode==Solve || mode==Edit){
 			if (param1==NULL){
-				if (!undo()){
+				if (!undo(mode)){
 					printError(NoMoreUndo, NULL,0,0);
 				}
 				printBoard(mark_errors);
@@ -307,7 +415,7 @@ When several errors exist for the same command, follow this order:
 	} else if (strcmp(token, "redo")==0) { /*10*/
 		if (mode==Solve || mode==Edit){
 			if (param1==NULL){
-				if (!redo()){
+				if (!redo(mode)){
 					printError(NoMoreRedo, NULL,0,0);
 				}
 				printBoard(mark_errors);
@@ -422,6 +530,7 @@ When several errors exist for the same command, follow this order:
 			if (param1==NULL){
 				if(!isErroneous()){
 					numSolution();
+					return mode;
 				}
 				else{
 					printError(Erroneous,NULL,0,0);
@@ -444,7 +553,7 @@ When several errors exist for the same command, follow this order:
 						addStep(moves); /* addStep removes the steps from current move to the end and then updates current.nextStep to moves */
 					}
 					printBoard(mark_errors);
-					return mode;
+					return isBoardCompleted(mode);
 				}else{
 					printError(Erroneous,NULL,0,0);
 					return mode;
@@ -459,7 +568,7 @@ When several errors exist for the same command, follow this order:
 	}else if (strcmp(token, "reset")==0){/*16*/
 		if(mode==Solve||mode==Edit){
 			if (param1==NULL){
-				undoAllSteps();
+				undoAllSteps(mode);
 				printBoard(mark_errors);
 				return mode;
 			}else{

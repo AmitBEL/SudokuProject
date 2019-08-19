@@ -1,6 +1,4 @@
 #include "Solver.h"
-#include "Game.h"
-#include "Stack.h"
 
 int choice(int *options, int size)
 {
@@ -39,7 +37,7 @@ int backtrack(Puzzle *puzzle)
 	Cell *cell;
 	bool success, found=false, end = false;
 	Stack *stk = (Stack*)calloc(1, sizeof(Stack));
-	
+
 	if(puzzle->numOfEmptyCells==0) /* there are not any empty cells */
 	{
 		free(stk);
@@ -51,13 +49,13 @@ int backtrack(Puzzle *puzzle)
 	found = false;
 	col = 1;
 	row = 1;
-	cell = getCell(col, row);
+	cell = getCell(puzzle, col, row);
 	while (!found) /* search for the first empty cell */
 	{
 		if (cell->value==0) /* found the first empty cell */
 		{
 			found = true;
-			push(col, row, stk);
+			push(puzzle, col, row, puzzle->blockNumOfCells, stk);
 			c = choice(stk->top->options, puzzle->blockNumOfCells+1);
 			if (c==0) /* there is not a valid option */
 			{
@@ -66,7 +64,7 @@ int backtrack(Puzzle *puzzle)
 			}
 			else /* there is a valid option */
 			{
-				set(col, row, c, Edit);
+				setCell(puzzle, col, row, c, Edit);
 				success = true;
 			}
 		}
@@ -74,7 +72,7 @@ int backtrack(Puzzle *puzzle)
 		{
 			col = nextCellCol(col, puzzle->blockNumOfCells);
 			row = nextCellRow(col, row, puzzle->blockNumOfCells);
-			cell = getCell(col, row);			
+			cell = getCell(puzzle, col, row);
 		}
 		
 	}
@@ -83,7 +81,7 @@ int backtrack(Puzzle *puzzle)
 	{
 		col = topCol(stk);
 		row = topRow(stk);
-		cell = getCell(col, row);
+		cell = getCell(puzzle, col, row);
 
 		if( !success || end) /* invalid cell solution or last cell */
 		{
@@ -92,14 +90,14 @@ int backtrack(Puzzle *puzzle)
 			stk->top->options[0]--;
 			if (stk->top->options[0]==0) /* no more options */
 			{
-				set(col, row, 0, Edit);
+				setCell(puzzle, col, row, 0, Edit);
 				pop(stk);
 				end = true;
 			}
 			else
 			{
 				c = choice(stk->top->options, puzzle->blockNumOfCells+1); /* next option */
-				set(col, row, c, Edit);
+				setCell(puzzle, col, row, c, Edit);
 				end = false;
 			}
 		}
@@ -117,11 +115,11 @@ int backtrack(Puzzle *puzzle)
 				{
 					col = nextCellCol(col, puzzle->blockNumOfCells);
 					row = nextCellRow(col, row, puzzle->blockNumOfCells);
-					cell = getCell(col, row);
+					cell = getCell(puzzle, col, row);
 					if (cell->value==0)
 					{
 						found = true;
-						push(col, row, stk);
+						push(puzzle, col, row, puzzle->blockNumOfCells, stk);
 						c = choice(stk->top->options, puzzle->blockNumOfCells+1);
 						if (c==0)
 						{
@@ -130,7 +128,7 @@ int backtrack(Puzzle *puzzle)
 						}
 						else
 						{
-							set(col, row, c, Edit);
+							setCell(puzzle, col, row, c, Edit);
 							success = true;
 						}
 					}

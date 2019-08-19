@@ -6,20 +6,24 @@
 #include <string.h>
 #include <ctype.h>
 #include "Game.h"
-#include "Generator.h"
+/*#include "Generator.h"*/
 
 Mode getCommand(Mode mode);
 
-void undoAllSteps();
+void undoAllSteps(Mode mode);
 
 void addStep(Move *moves);
 
 void resetStepsList();
 
-void undoAllSteps();
+bool undo(Mode mode);
 
-bool undo();
+bool redo(Mode mode);
 
-bool redo();
+Mode isBoardCompleted(Mode mode);
+
+bool EditType(char* optional, Mode mode);
+
+void UpdateMarkErrors(char* value);
 
 #endif

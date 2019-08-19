@@ -50,35 +50,72 @@ void cleanPuzzle()
     puzzle->numOfEmptyCells = 0;
 }
 
+/*
+ * 1<=x<=(puzzle->blockNumOfCells)
+ * 1<=y<=(puzzle->blockNumOfCells)
+ */
+void setFillBoard(int x, int y, int newValue) {
+	Cell *cell = getCell(puzzle, x, y);
+	puzzle->numOfEmptyCells--;
+	updateCollisions(puzzle, x, y, newValue);
+	cell->value = newValue;
+}
+
 bool fillBoard(FILE* fp, Mode mode) {
-	int i, j, N=puzzle->blockNumOfCells, newValue;
+	int i, j, N=getBlockNumOfCells(), newValue;
+	int **board=(int**)calloc(N, sizeof(int*));
 	char ch;
 	Cell *cell;
 
+	for (i=0;i<N;i++)
+		board[i]=(int*)calloc(N, sizeof(int));
+
 	for(i=0;i<N;i++){
 		for(j=0;j<N;j++){
-			cell = getCell(j+1, i+1);
+			cell = getCell(puzzle, j+1, i+1);
 			if (fscanf(fp, "%d", &newValue)!=1)
 				return false;
 			if (!isNumInRange(newValue, 0, N))
 				return false;
 			/*printf("%d\n", newValue);*/
+			if (mode==Solve)
+				board[i][j]=newValue;
 			if (newValue!=0) {
-				puzzle->numOfEmptyCells--;
-				updateCollisions(j+1, i+1, newValue);
-				cell->value = newValue;
-				if(fscanf(fp, "%c", &ch)==1){
-					if (ch=='.' && mode==Solve) /* cell is not fixed when loading in edit mode */
-						cell->fixed=1;
+				if (mode==Solve)
+				{
+					if(fscanf(fp, "%c", &ch)==1){
+						if (ch=='.') /* cell is not fixed when loading in edit mode */
+						{
+							setFillBoard(j+1, i+1, newValue);
+							cell->fixed = 1;
+						}
+					}
 				}
+				else /* mode==Edit */
+				{
+					setFillBoard(j+1, i+1, newValue);
+					fscanf(fp, "%c", &ch);
+				}
+
 			}
 		}
 	}
-	/*
-	solve C:\\sudoku\\in8.txt should fail
-	if (hasErroneousFixedCells() && mode==Solve)
-		return false;
-	*/
+
+
+
+	if (mode==Solve)
+	{
+		/* solve C:\\sudoku\\in8.txt should fail */
+		if (isErroneous())
+			return false;
+
+		for(i=0;i<N;i++){
+			for(j=0;j<N;j++){
+				setFillBoard(j+1, i+1, board[i][j]);
+			}
+		}
+	}
+
 	return true;
 }
 
@@ -105,13 +142,21 @@ bool load(char* filepath, Mode mode) {
 	}
 
 	if (m*n>99){
-		fclose(fp);
 		printError(BigBoard, NULL,0,0);
+		fclose(fp);
+		return false;
+	}
+
+	if (m<=0 || n<=0)
+	{
+		printError(DimNotPositive, NULL, 0, 0);
+		fclose(fp);
 		return false;
 	}
 
 	createBoard(m, n);
 	if (!fillBoard(fp, mode)) {
+		printBoard(1);
 		if (puzzle->board!=NULL)
 			cleanPuzzle();
 		printError(IllegalBoard, NULL, 0, 0);
@@ -140,7 +185,7 @@ bool save(char* filepath, Mode mode) {
 	fprintf(fp, "%d %d\n", puzzle->blockNumRow, puzzle->blockNumCol);
 	for(i=0;i<N;i++){
 			for(j=0;j<N;j++){
-				cell = getCell(j+1,i+1);
+				cell = getCell(puzzle, j+1,i+1);
 				if (j>0){
 					fprintf(fp, " ");
 				}
@@ -156,14 +201,6 @@ bool save(char* filepath, Mode mode) {
 		return false;
 
 	return true;
-}
-
-/* return a pointer to cell <x,y> */
-Cell* getCell(int x, int y)
-{
-    int row = y - 1;
-    int col = x - 1;
-    return (&(puzzle->board[row][col]));
 }
 
 /* load puzzle for solve mode */
@@ -246,6 +283,8 @@ void printBoard(int mark)
     int C = 4;           /* num of chars every cell take to print */
     int numOfdashes = M * (N * C + 1) + 1;
 
+    printf("errors: %d\n", puzzle->numOfErroneous);
+
     for (l = 0; l < numOfdashes; l++) /* print first dashes row */
     {
         printf("-");
@@ -263,7 +302,7 @@ void printBoard(int mark)
                 {
                     cellRow = (k * M) + r + 1;
                     cellCol = (j * N) + i + 1;
-                    cell = getCell(cellCol, cellRow);
+                    cell = getCell(puzzle, cellCol, cellRow);
                     if (cell->value == 0) /* empty cell */
                     {
                         printf("   ");
@@ -289,225 +328,32 @@ void printBoard(int mark)
                     }
                 }
             }
-                printf("|\n");
-            }
-            for (l = 0; l < numOfdashes; l++)
-            {
-                printf("-");
-            }
-            printf("\n");
+            printf("|\n");
         }
-        return;
+		for (l = 0; l < numOfdashes; l++)
+		{
+			printf("-");
+		}
+		printf("\n");
     }
-
-/* 
- * set cell <x,y> value to z
- * update collisions with the previous value and the new value
- * update the number of empty cells
- * if all the cells are not empty and game mode is solve
- * check if the puzzle can be solved  
- * print a message and update game mode according to the check
- *  */
-Move* set(int x, int y, int z, Mode mode)
-{
-    Move *head = NULL;
-    Cell *cell;
-    cell = getCell(x, y);
-    if (mode == Solve && cell->fixed)
-    {
-        printf("Error: cell is fixed\n");
-        return head;
-    }
-    if (cell->value==z)
-    {
-        return head;
-    }
-    if (cell->value == 0)
-    {
-        if (z != 0)
-        {
-            puzzle->numOfEmptyCells--;
-        }
-    }
-    else
-    {
-        if (z == 0)
-        {
-            puzzle->numOfEmptyCells++;
-        }
-    }
-    updateCollisions(x, y, z);
-    addToList(&head, x, y, cell->value, z);
-    cell->value = z;
-    return head;
-}
-
-bool isSolved()
-    {
-	return (!(puzzle->numOfEmptyCells) && !isErroneous() ? true : false);
-}
-
-/* 
- * substruct cell num of collision by 1
- * and update puzzle's num of erroneous accordingly
- */
-void subCollision(Cell *cell)
-{
-    ((cell->numOfCollisions)--);
-    if (!(cell->numOfCollisions))
-    {
-        ((puzzle->numOfErroneous)--);
-    }
-}
-
-/* 
- * add 1 to cell num of collision
- * and update puzzle's num of erroneous accordingly
- */
-void addCollision(Cell *cell)
-{
-    if (!(cell->numOfCollisions))
-    {
-        ((puzzle->numOfErroneous)++);
-    }
-    ((cell->numOfCollisions)++);
-}
-
-/* update all the collision of cell <x,y> row */
-void updateRowCollisions(int x, int y, int newValue)
-{
-    int i;
-    Cell *cell = getCell(x, y);
-    Cell *colCell;
-    int oldValue = cell->value;
-    /*if (oldValue==newValue)
-    {
-        return;
-    }
-    cell->numOfCollisions = 0; *//* initialize cell <x,y> num of collisions */
-    for (i=0; i<puzzle->blockNumOfCells; i++)
-    {
-    	if (i+1 == x)
-    	{
-    		continue;
-    	}
-        colCell = getCell(i+1,y);
-        if ((colCell->value == oldValue) && (oldValue != 0)) /* collision with the old value */
-        {
-            subCollision(colCell);
-        }
-        if ((colCell->value == newValue) && (newValue != 0)) /* collision with the new value */
-        {
-            addCollision(cell);
-            addCollision(colCell);
-        }
-    }
-}
-
-/* update all the collision of cell <x,y> col */
-void updateColCollisions(int x, int y, int newValue)
-{
-    int i;
-    Cell *cell = getCell(x, y);
-    Cell *colCell;
-    int oldValue = cell->value;
-    /*if (oldValue==newValue)
-    {
-        return;
-    }
-    cell->numOfCollisions = 0;*/ /* initialize cell <x,y> num of collisions */
-    for (i=0; i<puzzle->blockNumOfCells; i++)
-    {
-    	if (i+1 == y)
-    	{
-    		continue;
-    	}
-        colCell = getCell(x,i+1);
-        if ((colCell->value == oldValue) && (oldValue != 0)) /* collision with the old value */
-        {
-            subCollision(colCell);
-        }
-        if ((colCell->value == newValue) && (newValue != 0)) /* collision with the new value */
-        {
-            addCollision(cell);
-            addCollision(colCell);
-        }
-    }
-}
-
-/* 
- * return the first row in the block 
- * @pre: row is 0-based
- */
-int firstRowInBlock(int row, int blockNumRows)
-{
-	return (row / blockNumRows) * blockNumRows;
+    return;
 }
 
 /*
- * return the first col in the block 
- * @pre: col is 0-based
+ * call setCell
  */
-int firstColInBlock(int col, int blockNumCols)
+Move* set(int x, int y, int z, Mode mode)
 {
-	return (col / blockNumCols) * blockNumCols;
+    return setCell(puzzle, x, y, z, mode);
 }
 
-/* update all the collision of cell <x,y> block */
-void updateBlockCollisions(int x, int y, int newValue)
+bool isSolved()
 {
-    int i, j, firstRow, firstCol;
-    Cell *cell = getCell(x, y);
-    Cell *colCell;
-    int oldValue = cell->value;
-    /*if (oldValue==newValue)
-    {
-        return;
-    }
-    cell->numOfCollisions = 0;*/ /* initialize cell <x,y> num of collisions */
-    
-    firstRow = firstRowInBlock(y-1, puzzle->blockNumRow); /* index of first row in the block */
-	firstCol = firstColInBlock(x-1, puzzle->blockNumCol); /* index of first column in the block */
-
-    for (i = firstRow; i < firstRow + puzzle->blockNumRow; i++)
-	{
-    	if (i+1==y) /* do not check the same row twice */
-    		continue;
-		for (j = firstCol; j < firstCol + puzzle->blockNumCol; j++)
-		{
-			if (j+1==x) /* do not check the same column twice */
-				continue;
-
-			colCell = getCell(j+1, i+1); 
-            if ((colCell->value == oldValue) && (oldValue != 0)) /* collision with the old value */
-            {
-                subCollision(colCell);
-            }
-            if ((colCell->value == newValue) && (newValue != 0)) /* collision with the new value */
-            {
-                addCollision(cell);
-                addCollision(colCell);
-            }
-		}
-	}
-}
-
-/* update collisions of the new and old values */
-void updateCollisions(int x, int y, int newValue)
-{
-    Cell* cell=getCell(x,y);
-    if (cell->numOfCollisions)
-    {
-        puzzle->numOfErroneous--;
-    }
-    cell->numOfCollisions=0;
-    updateRowCollisions(x, y, newValue);
-    updateColCollisions(x, y, newValue);
-    updateBlockCollisions(x, y, newValue);
+	return (!(puzzle->numOfEmptyCells) && !isErroneous() ? true : false);
 }
 
 bool isErroneous() {
-    return (puzzle->numOfErroneous > 0 ? true : false);
+	return (puzzle->numOfErroneous > 0 ? true : false);
 }
 
 /* check if the board is solvable */
@@ -544,13 +390,13 @@ Move* guess(float threshold, Mode mode)
     {
         for (j = 0; j < puzzle->blockNumOfCells; j++)
         {
-            cell = getCell(i + 1, j + 1);
+            cell = getCell(puzzle, i + 1, j + 1);
             if (!(cell->fixed))
             {
             	m=set(i + 1, j + 1, LPSolution->board[j][i].value, mode);
                 concat(&head, &m);
+            }
         }
-    }
     }
     return head;
 }
@@ -560,7 +406,7 @@ void hint(int x, int y)
     Puzzle *ILPSolution;
     Cell *cell;
     int value;
-    cell = getCell(x, y);
+    cell = getCell(puzzle, x, y);
     if (cell->fixed)
     {
         printf("Error: cell <%d,%d> is fixed\n", x, y);
@@ -584,7 +430,7 @@ void guessHint(int x, int y)
     Cell *cell;
     float *values;
     int i;
-    cell = getCell(x, y);
+    cell = getCell(puzzle, x, y);
     if (cell->fixed)
     {
         printf("Error: cell <%d,%d> is fixed\n", x, y);
@@ -623,86 +469,24 @@ int numOfEmptyCells() {
 	return puzzle->numOfEmptyCells;
 }
 
-/* values[0] = num of legal values
- * values[i] = 1 if i is legal value for cell <x,y> and 0 otherwise
- * if cell <x,y> value is v!=0 return values[0]=values[v]=1 and 0 anywhere else
- * does not assume values is initialized
- */
-int *numOfCellSol(int x, int y, int *values)
+void printCustomBoard(Cell** board, int limit1, int limit2)
 {
-    int i, j, value, firstCol, firstRow;
-    Cell *cell, *colCell;
-
-    cell = getCell(x, y);
-    if (cell->value) /* cell is not empty */
-    {
-        values[0]=1;
-        for (i=0; i<puzzle->blockNumOfCells; i++)
-        {
-            if (cell->value==i+1)
-            {
-                values[i+1]=1;
-            }
-            else
-            {
-                values[i+1]=0;
-            }
-            
-        }
-        return values; 
-    }
-
-    for (i=0; i<puzzle->blockNumOfCells; i++)
-    {
-        values[i+1] = 1;
-    }
-
-    /* update values according to col */
-    for (i=0; i<puzzle->blockNumOfCells; i++)
-    {
-        cell = getCell(x, i+1);
-        value = cell->value;
-        values[value] = 0;
-    }
-
-    /* update values according to row */
-    for (i=0; i<puzzle->blockNumOfCells; i++)
-    {
-        cell = getCell(i+1, y);
-        value = cell->value;
-        values[value] = 0;
-    }
-
-    /* update values according to block */
-    firstCol = firstColInBlock(x-1, puzzle->blockNumCol);
-    firstRow = firstRowInBlock(y-1, puzzle->blockNumRow);
-    for (i = firstRow; i < firstRow + puzzle->blockNumRow; i++)
+	int i,j;
+	printf("\nfill (%d,%d):\n", limit1, limit2);
+	for (i=0; i<limit1; i++)
 	{
-		for (j = firstCol; j < firstCol + puzzle->blockNumCol; j++)
+		for (j=0; j<limit2; j++)
 		{
-			colCell = getCell(j+1, i+1); 
-            value = colCell->value;
-            values[value] = 0;
+			printf("%d ", board[i][j].value);
 		}
+		printf("\n");
 	}
-
-    /* update values[0] according to the number of valid cell sol */
-    value = 0;
-    for (i=0; i<puzzle->blockNumOfCells; i++)
-    {
-        if (values[i+1])
-        {
-            value++;
-        }
-    }
-    values[0] = value;
-
-    return values;
+	printf("\n");
 }
 
 Move* autoFill(Mode mode)
 {
-    Move *head = (Move*)calloc(1, sizeof(Move));
+    Move *head = NULL;
     int i, j, k, value;
     Cell *cell;
     int *values = (int *)calloc((puzzle->blockNumOfCells) + 1, sizeof(int));
@@ -710,14 +494,21 @@ Move* autoFill(Mode mode)
     Puzzle *toFill = &newPuzzle; /* create new empty puzzle */
     Move* m;
 
-    toFill->board = (Cell **)calloc(toFill->blockNumOfCells, sizeof(Cell *)); /* create empty board to the new puzzle */
+    toFill->blockNumCol = puzzle->blockNumCol;
+    toFill->blockNumOfCells = puzzle->blockNumOfCells;
+    toFill->blockNumRow = puzzle->blockNumRow;
+    toFill->numOfCells = puzzle->numOfCells;
+    toFill->numOfEmptyCells = puzzle->numOfEmptyCells;
+    toFill->numOfErroneous = puzzle->numOfErroneous;
+    toFill->board = (Cell **)calloc(puzzle->blockNumOfCells, sizeof(Cell *)); /* create empty board to the new puzzle */
+    printf("A");
     if (toFill->board == NULL)
     { /* calloc failed */
         printError(MemoryAllocFailed, NULL,0,0);
     }
     for (i = 0; i < toFill->blockNumOfCells; i++)
     {
-        toFill->board[i] = (Cell *)calloc(toFill->blockNumOfCells, sizeof(Cell));
+        toFill->board[i] = (Cell *)calloc(puzzle->blockNumOfCells, sizeof(Cell));
         if (toFill->board[i] == NULL)
         { /* calloc failed */
             for (j = 0; j < i; j++)
@@ -728,43 +519,54 @@ Move* autoFill(Mode mode)
             printError(MemoryAllocFailed, NULL,0,0);
         }
     }
-
+    printf("B");
     for (i = 0; i < puzzle->blockNumOfCells; i++)
     { /* fill the new puzzle board with obvious values only */
         for (j = 0; j < puzzle->blockNumOfCells; j++)
         {
-            cell = getCell(i, j);
+            cell = getCell(puzzle, j+1, i+1);
+            printf("C");
             if (!(cell->value))
             {
-                values = numOfCellSol(i, j, values);
+            	printf("D");
+                values = numOfCellSol(puzzle, j+1, i+1, values);
+                printf("cell <%d,%d> values[0]=%d\n", j+1, i+1, values[0]);
                 if (values[0] == 1)
                 {
-                    for (k = 1; k < puzzle->blockNumOfCells; k++)
+                    for (k = 1; k < (puzzle->blockNumOfCells)+1; k++)
                     {
-                        if (values[k] == 1)
+                        printf("k=%d", k);
+                    	printf("values[%d]=%d, ", k, values[k]);
+                        printCustomBoard(toFill->board, puzzle->blockNumOfCells, puzzle->blockNumOfCells);
+                    	if (values[k] == 1)
                         {
-                            value = k;
+                            /*value = k;*/
+                    		(toFill->board[i][j]).value = k;
+                    		printf("....\n");
+                    		printCustomBoard(toFill->board, puzzle->blockNumOfCells, puzzle->blockNumOfCells);
                             break;
                         }
                     }
-                    toFill->board[j][i].value = value;
+                    /*(toFill->board[i][j]).value = value;*/
                 }
             }
         }
     }
-
+    printf("E");
     for (i = 0; i < puzzle->blockNumOfCells; i++)
     { /* fill the original puzzle board with the obvious values from the new puzzle board */
         for (j = 0; j < puzzle->blockNumOfCells; j++)
         {
-            cell = getCell(i, j);
+            cell = getCell(puzzle, j+1, i+1);
             if (!(cell->value))
             {
-                value = toFill->board[j][i].value;
+                value = toFill->board[i][j].value;
                 if (value)
                 {
-                	m=set(i + 1, j + 1, value, mode);
+                	m=set(j + 1, i + 1, value, mode);
+                	printf("<%d,%d> after set", j+1, i+1);
                     concat(&head, &m);
+                    printf(" after concat\n");
                 }
             }
         }

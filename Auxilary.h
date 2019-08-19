@@ -2,9 +2,7 @@
 #define AUXILARY_H_
 
 #include "ErrorHandler.h"
-#include "SingleLinkedList.h"
 #include "DoublyLinkedList.h"
-#include "Stack.h"
 
 typedef enum Mode {Init, Edit, Solve} Mode;
 
@@ -13,22 +11,7 @@ typedef struct Cell {
 	int value;
 	int numOfCollisions;
 } Cell;
-/*
-typedef struct Move {
-	int x;
-	int y;
-	int oldValue;
-	int newValue;
-	struct Move *nextMove;
-} Move;
-*/
-/*
-typedef struct Step {
-	Move *move;
-	struct Step *prevStep;
-	struct Step *nextStep;
-} Step;
-*/
+
 typedef struct Puzzle {
 	Cell **board;
 	int blockNumRow;
@@ -40,5 +23,23 @@ typedef struct Puzzle {
 } Puzzle;
 
 bool isNumInRange(int num, int minNum, int maxNum);
+
+Cell* getCell(Puzzle *puzzle, int x, int y);
+
+Move* setCell(Puzzle *puzzle, int x, int y, int z, Mode mode);
+
+void updateCollisions(Puzzle *puzzle, int x, int y, int newValue);
+
+int *numOfCellSol(Puzzle *puzzle, int x, int y, int *values);
+
+void subCollision(Puzzle *puzzle, Cell *cell);
+
+void addCollision(Puzzle *puzzle, Cell *cell);
+
+void updateRowCollisions(Puzzle *puzzle, int x, int y, int newValue);
+
+void updateColCollisions(Puzzle *puzzle, int x, int y, int newValue);
+
+void updateBlockCollisions(Puzzle *puzzle, int x, int y, int newValue);
 
 #endif

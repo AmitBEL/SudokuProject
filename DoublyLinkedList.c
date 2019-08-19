@@ -65,7 +65,7 @@ void deleteNode(Step** head_ref, Step* del)
 
 /* Function to delete all next nodes after node in a Doubly Linked List.
    head_ref --> pointer to head node pointer.
-   del  -->  pointer to node that all its next nodes will be deleted. */
+   node  -->  pointer to node that all its next nodes will be deleted. */
 void deleteAllNextNodes(Step** head_ref, Step* node) {
 	if (*head_ref == NULL || node == NULL)
 	        return;
@@ -79,8 +79,11 @@ void deleteAllNextNodes(Step** head_ref, Step* node) {
 void printList(Step* node)
 {
     while (node != NULL) {
-        printf("<%d,%d> ", node->moves->x, node->moves->y);
+        printf("\n<%d,%d>:\n", node->moves->x, node->moves->y);
+        print_list(node->moves);
         node = node->next;
     }
+
+    printf("NULL\n");
 }
 
