@@ -5,6 +5,12 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+/* 
+ * Single Linked List Module - Header
+ * define Move (single-linked-list node)
+ * manage all single-linked-list operations
+ */
+
 typedef struct Move {
 	int x;
 	int y;

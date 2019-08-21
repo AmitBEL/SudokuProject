@@ -1,5 +1,11 @@
 #include "SingleLinkedList.h"
 
+/* 
+ * Single Linked List Module - Source
+ * implement all single-linked-list operations
+ */
+
+/* insert new single-linked-list node */
 void addToList(Move ** head, int x, int y, int oldValue, int newValue) {
     Move * new_node;
     new_node = (Move*)malloc(sizeof(Move));
@@ -12,6 +18,7 @@ void addToList(Move ** head, int x, int y, int oldValue, int newValue) {
     *head = new_node;
 }
 
+/* print list - delete before submission */
 void print_list(Move * head) {
 	Move * current = head;
 
@@ -23,6 +30,7 @@ void print_list(Move * head) {
     printf("NULL\n");
 }
 
+/* delete all the list */
 void deleteList(Move *head) {
 	Move  *current = head,
             *next = head;
@@ -34,6 +42,7 @@ void deleteList(Move *head) {
     }
 }
 
+/* concat 2 single-linked-lists */
 void concat(Move** head1, Move** head2) {
 	if (head1!=NULL && head2 != NULL) {
 		Move *current=*head1;

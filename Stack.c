@@ -1,10 +1,17 @@
 #include "Stack.h"
 
+/* 
+ * Stack Module - Source
+ * implement all stack operations
+ */
+
+/* initialize stk */
 void init(Stack *stk) {
 	stk->size = 0;
 	stk->top = NULL;
 }
 
+/* insert new stack node to the top of stk */
 bool push(Puzzle *puzzle, int col, int row, Stack *stk) {
 	StackNode *p = NULL;
 	int *values = (int*)calloc(puzzle->blockNumOfCells+1, sizeof(int));
@@ -22,6 +29,7 @@ bool push(Puzzle *puzzle, int col, int row, Stack *stk) {
 		return false;
 }
 
+/* delete stk top item and return its options[0] */
 int pop(Stack *stk) {
 	int option;
 	StackNode *p = NULL;
@@ -36,6 +44,7 @@ int pop(Stack *stk) {
 	return option;
 }
 
+/* return stk top item's col */
 int topCol(Stack *stk) {
 	if (stk->top == NULL)
 	{
@@ -44,6 +53,7 @@ int topCol(Stack *stk) {
 	return (stk->top->col);
 }
 
+/* return stk top item's row */
 int topRow(Stack *stk) {
 	if (stk->top == NULL)
 	{
@@ -51,11 +61,12 @@ int topRow(Stack *stk) {
 	}
 	return (stk->top->row);
 }
-
+/* return stk top item's options[0] */
 int topOption(Stack *stk) {
 	return (stk->top->options[0]);
 }
 
+/* return true iff stk is empty */
 bool isEmpty(Stack *stk) {
 	return (stk->size == 0 ? true : false);
 }

@@ -1,5 +1,23 @@
 #include "Solver.h"
 
+/* 
+ * Solver Module - Source
+ * implement the exhaustive backtrack algorithm 
+ */
+
+
+/* private functions declaration */
+int choice(int *options, int size);
+
+int nextCellCol(int col, int blockNumOfCells);
+
+int nextCellRow(int col, int row, int blockNumOfCells);
+
+
+/* choose the first index in range [1,size) such that options[index]==1
+ * if there isn't such index return 0
+ * pre: options length is size 
+ */
 int choice(int *options, int size)
 {
 	int i;
@@ -13,11 +31,13 @@ int choice(int *options, int size)
 	return 0;
 }
 
+/* return the next cell col according to the current col */
 int nextCellCol(int col, int blockNumOfCells)
 {
 	return ((col%blockNumOfCells)+1);
 }
 
+/* return the next cell row according to the current cell */
 int nextCellRow(int col, int row, int blockNumOfCells)
 {
 	if (col%blockNumOfCells==0)
@@ -31,6 +51,11 @@ int nextCellRow(int col, int row, int blockNumOfCells)
 	
 }
 
+/* 
+ * return the number of possible solutions to puzzle 
+ * using the exhaustive backtrack algorithm
+ * and a stack that simulate recursion
+ */
 int backtrack(Puzzle *puzzle)
 {
 	int c, col=0, row=0, cnt=0;
@@ -54,7 +79,7 @@ int backtrack(Puzzle *puzzle)
 			c = cell->value;
 			stk->top->options[c]=0;
 			stk->top->options[0]--;
-			if (stk->top->options[0]==0) /* no more options */
+			if (topOption(stk)==0) /* no more options */
 			{
 				dummyMove=setCell(puzzle, col, row, 0, Edit);
 				deleteList(dummyMove);

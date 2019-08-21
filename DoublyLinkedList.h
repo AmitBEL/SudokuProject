@@ -7,6 +7,12 @@
 #include <stdbool.h>
 #include "SingleLinkedList.h"
 
+/* 
+ * Doubly Linked List Module - Header
+ * define Step (doubly-linked-list node)
+ * manage all doubly-linked-list operations
+ */
+
 typedef struct Step {
     Move* moves;
     struct Step* next; /* Pointer to next node in DLL */

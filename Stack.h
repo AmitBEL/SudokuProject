@@ -14,6 +14,13 @@
 #include <stdbool.h>
 #include "Auxilary.h"
 
+/* 
+ * Stack Module - Header
+ * define stack node and stack
+ * manage all stack operations
+ */
+
+/* define stack node */
 typedef struct StackNode
 {
 	int col;
@@ -22,6 +29,7 @@ typedef struct StackNode
 	struct StackNode *next;
 } StackNode;
 
+/* define stack */
 typedef struct Stack
 {
 	int size; /* size of stack */
@@ -33,8 +41,6 @@ void init(Stack *stk);
 bool push(Puzzle *puzzle, int col, int row, Stack *stk);
 
 int pop(Stack *stk);
-
-int top(Stack *stk);
 
 int topCol(Stack *stk);
 
