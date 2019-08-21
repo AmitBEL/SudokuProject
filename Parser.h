@@ -8,22 +8,11 @@
 #include "Game.h"
 /*#include "Generator.h"*/
 
+/* 
+ * Parser Module - Header
+ * handle user input and call the relevant functions 
+ */
+
 Mode getCommand(Mode mode);
-
-void undoAllSteps(Mode mode);
-
-void addStep(Move *moves);
-
-void resetStepsList();
-
-bool undo(Mode mode);
-
-bool redo(Mode mode);
-
-Mode isBoardCompleted(Mode mode);
-
-bool EditType(char* optional, Mode mode);
-
-void UpdateMarkErrors(char* value);
 
 #endif
