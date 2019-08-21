@@ -67,16 +67,39 @@ bool fillBoard(FILE* fp, Mode mode) {
 	char ch;
 	Cell *cell;
 
+	if (board==NULL)
+	{
+		printError(MemoryAllocFailed, NULL, 0, 0);
+		exit(0);
+	}
+
 	for (i=0;i<N;i++)
+	{
 		board[i]=(int*)calloc(N, sizeof(int));
+		if (board[i]==NULL)
+		{
+			printError(MemoryAllocFailed, NULL, 0, 0);
+			exit(0);
+		}
+	}
 
 	for(i=0;i<N;i++){
 		for(j=0;j<N;j++){
 			cell = getCell(puzzle, j+1, i+1);
 			if (fscanf(fp, "%d", &newValue)!=1)
+			{
+				for (i=0;i<N;i++)
+					free(board[i]);
+				free(board);
 				return false;
+			}
 			if (!isNumInRange(newValue, 0, N))
+			{
+				for (i=0;i<N;i++)
+					free(board[i]);
+				free(board);
 				return false;
+			}
 			/*printf("%d\n", newValue);*/
 			if (mode==Solve)
 				board[i][j]=newValue;
@@ -88,6 +111,7 @@ bool fillBoard(FILE* fp, Mode mode) {
 						{
 							setFillBoard(j+1, i+1, newValue);
 							cell->fixed = 1;
+							board[i][j]=0;
 						}
 					}
 				}
@@ -107,14 +131,24 @@ bool fillBoard(FILE* fp, Mode mode) {
 	{
 		/* solve C:\\sudoku\\in8.txt should fail */
 		if (isErroneous())
+		{
+			for (i=0;i<N;i++)
+				free(board[i]);
+			free(board);
 			return false;
+		}
 
 		for(i=0;i<N;i++){
 			for(j=0;j<N;j++){
+				if (board[i][j]!=0)
 				setFillBoard(j+1, i+1, board[i][j]);
 			}
 		}
 	}
+
+	for (i=0;i<N;i++)
+		free(board[i]);
+	free(board);
 
 	return true;
 }
@@ -336,6 +370,7 @@ void printBoard(int mark)
 		}
 		printf("\n");
     }
+    printf("num of empty cells: %d\n", numOfEmptyCells());
     return;
 }
 
@@ -469,6 +504,14 @@ int numOfEmptyCells() {
 	return puzzle->numOfEmptyCells;
 }
 
+/*
+ * pre-condition: fixed cell is not empty
+ */
+bool isCellEmpty(int col, int row)
+{
+	return ((puzzle->board[row][col]).value==0 ? true : false);
+}
+
 void printCustomBoard(Cell** board, int limit1, int limit2)
 {
 	int i,j;
@@ -588,4 +631,9 @@ void Exit()
 		cleanPuzzle();
     printf("Exiting...\n");
     exit(0);
+}
+
+Move* generateBoard(int x, int y)
+{
+	return generate(puzzle, x, y);
 }
