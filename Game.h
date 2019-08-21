@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <Math.h>
+/*#include <Math.h>*/
 #include "Solver.h"
 #include "Generator.h"
 
@@ -55,4 +55,7 @@ bool isSolved();
 void cleanPuzzle();
 
 bool fillBoard(FILE* fp, Mode mode);
+
+Move* generateBoard(int x, int y);
+
 #endif

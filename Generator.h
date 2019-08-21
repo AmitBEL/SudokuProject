@@ -2,8 +2,15 @@
 #define GENERATOR_H_
 
 #include <stdlib.h>
+/*#include <time.h>*/
 #include "ILP.h"
 
-Move* generate(int x, int y);
+Move* generate(Puzzle *puzzle, int x, int y);
+
+void fillRandPossibleValue(Puzzle *puzzle, int col, int row);
+
+void copyBoard(Puzzle* source, int** dest);
+
+void changePuzzle(Puzzle* puzzle, int** source);
 
 #endif
