@@ -18,7 +18,7 @@ void undoAllSteps(Mode mode){
 }
 
 bool undo(Mode mode){
-	Move *moves;
+	Move *moves, *dummyMove;
 	if (stepsList==NULL) /* currentMove=NULL too, the list is empty */
 		return false;
 	else if (currentMove==NULL) /* user made undo to all steps */
@@ -27,7 +27,8 @@ bool undo(Mode mode){
 		moves = currentMove->moves;
 		while (moves!=NULL)
 		{
-			set(moves->x, moves->y, moves->oldValue, mode);
+			dummyMove=set(moves->x, moves->y, moves->oldValue, mode);
+			deleteList(dummyMove);
 			moves=moves->next;
 		}
 		/* check if currentMove is not the first */
@@ -47,7 +48,7 @@ bool undo(Mode mode){
 }
 
 bool redo(Mode mode) {
-	Move *moves;
+	Move *moves, *dummyMove;
 	if (stepsList==NULL) /* currentMove=NULL too, the list is empty */
 		return false;
 	else if (currentMove==NULL) /* user made undo to all steps */
@@ -55,7 +56,8 @@ bool redo(Mode mode) {
 		moves=stepsList->moves;
 		while(moves!=NULL)
 		{
-			set(moves->x,moves->y, moves->newValue, mode);
+			dummyMove=set(moves->x,moves->y, moves->newValue, mode);
+			deleteList(dummyMove);
 			moves=moves->next;
 		}
 		currentMove=stepsList;
@@ -73,7 +75,8 @@ bool redo(Mode mode) {
 		moves=currentMove->next->moves;
 		while(moves!=NULL)
 		{
-			set(moves->x,moves->y, moves->newValue, mode);
+			dummyMove=set(moves->x,moves->y, moves->newValue, mode);
+			deleteList(dummyMove);
 			moves=moves->next;
 		}
 		currentMove=currentMove->next;

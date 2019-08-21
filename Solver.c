@@ -37,6 +37,7 @@ int backtrack(Puzzle *puzzle)
 	Cell *cell;
 	bool success=true, found=false, end = false;
 	Stack *stk = (Stack*)calloc(1, sizeof(Stack));
+	Move *dummyMove;
 
 	if(puzzle->numOfEmptyCells==0) /* there are not any empty cells */
 	{
@@ -55,14 +56,16 @@ int backtrack(Puzzle *puzzle)
 			stk->top->options[0]--;
 			if (stk->top->options[0]==0) /* no more options */
 			{
-				setCell(puzzle, col, row, 0, Edit);
+				dummyMove=setCell(puzzle, col, row, 0, Edit);
+				deleteList(dummyMove);
 				pop(stk);
 				/*end = true;*/
 			}
 			else
 			{
 				c = choice(stk->top->options, puzzle->blockNumOfCells+1); /* next option */
-				setCell(puzzle, col, row, c, Edit);
+				dummyMove=setCell(puzzle, col, row, c, Edit);
+				deleteList(dummyMove);
 				end = false;
 				success = true;
 			}
@@ -94,7 +97,8 @@ int backtrack(Puzzle *puzzle)
 						}
 						else
 						{
-							setCell(puzzle, col, row, c, Edit);
+							dummyMove=setCell(puzzle, col, row, c, Edit);
+							deleteList(dummyMove);
 							success = true;
 						}
 					}
