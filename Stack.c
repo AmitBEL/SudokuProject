@@ -37,10 +37,18 @@ int pop(Stack *stk) {
 }
 
 int topCol(Stack *stk) {
+	if (stk->top == NULL)
+	{
+		return 0;
+	}
 	return (stk->top->col);
 }
 
 int topRow(Stack *stk) {
+	if (stk->top == NULL)
+	{
+		return 0;
+	}
 	return (stk->top->row);
 }
 

@@ -7,13 +7,16 @@
 int main() {
 	Mode mode = Init;
 	/*int i=0;*/
+
+
 	SP_BUFF_SET();
+	srand(time(NULL));
 	/*
 	for (i=0;i<256;i++)
 		printf("1");
+*/
 
-	srand(time(NULL));
-	 */
+
 	while (1) {
 		mode = getCommand(mode);
 	}

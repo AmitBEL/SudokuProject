@@ -18,7 +18,7 @@ void undoAllSteps(Mode mode){
 }
 
 bool undo(Mode mode){
-	Move *moves;
+	Move *moves, *dummyMove;
 	if (stepsList==NULL) /* currentMove=NULL too, the list is empty */
 		return false;
 	else if (currentMove==NULL) /* user made undo to all steps */
@@ -27,7 +27,8 @@ bool undo(Mode mode){
 		moves = currentMove->moves;
 		while (moves!=NULL)
 		{
-			set(moves->x, moves->y, moves->oldValue, mode);
+			dummyMove=set(moves->x, moves->y, moves->oldValue, mode);
+			deleteList(dummyMove);
 			moves=moves->next;
 		}
 		/* check if currentMove is not the first */
@@ -47,7 +48,7 @@ bool undo(Mode mode){
 }
 
 bool redo(Mode mode) {
-	Move *moves;
+	Move *moves, *dummyMove;
 	if (stepsList==NULL) /* currentMove=NULL too, the list is empty */
 		return false;
 	else if (currentMove==NULL) /* user made undo to all steps */
@@ -55,7 +56,8 @@ bool redo(Mode mode) {
 		moves=stepsList->moves;
 		while(moves!=NULL)
 		{
-			set(moves->x,moves->y, moves->newValue, mode);
+			dummyMove=set(moves->x,moves->y, moves->newValue, mode);
+			deleteList(dummyMove);
 			moves=moves->next;
 		}
 		currentMove=stepsList;
@@ -73,7 +75,8 @@ bool redo(Mode mode) {
 		moves=currentMove->next->moves;
 		while(moves!=NULL)
 		{
-			set(moves->x,moves->y, moves->newValue, mode);
+			dummyMove=set(moves->x,moves->y, moves->newValue, mode);
+			deleteList(dummyMove);
 			moves=moves->next;
 		}
 		currentMove=currentMove->next;
@@ -160,7 +163,7 @@ void UpdateMarkErrors(char* value) {
 }
 
 Mode getCommand(Mode mode) {
-	char input[MAX_INPUT_CHARS];
+	char input[MAX_INPUT_CHARS], ch;
 	char delimiter[]=" \t\r";
 	char *fgetsRetVal, *token, *param1, *param2, *param3, *param4;
 	int x, y, z, numOfSuccessfulScan;
@@ -183,6 +186,10 @@ Mode getCommand(Mode mode) {
 
 	if (input[MAX_INPUT_CHARS-2]!='\n' && input[MAX_INPUT_CHARS-2]!='\0'){ /* ensure 1<=command-length<=256 chars */
 		printError(TooLongInput, NULL, 0, 0);
+		for (x=0;x<300 && (ch=getchar())!='\n';x++)
+		{
+			putchar(ch);
+		}
 		return mode;
 	}
 
