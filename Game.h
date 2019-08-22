@@ -8,13 +8,16 @@
 #include "Solver.h"
 #include "Generator.h"
 
+/* 
+ * Game Module - Header
+ * handle game commands
+ */
+
 bool solve(char* filepath, Mode mode);
 
 bool editNew();
 
 bool editFile(char* filepath, Mode mode);
-
-bool load(char* filepath, Mode mode);
 
 void printBoard();
 
@@ -40,21 +43,11 @@ void Exit();
 
 int numOfEmptyCells();
 
-void createBoard(int blockNumOfRows, int blockNumOfCols);
-
-int getNumOfRowInBlock();
-
-int getNumOfColInBlock();
-
 int getBlockNumOfCells();
 
 int getNumOfCells();
 
 bool isSolved();
-
-void cleanPuzzle();
-
-bool fillBoard(FILE* fp, Mode mode);
 
 Move* generateBoard(int x, int y);
 

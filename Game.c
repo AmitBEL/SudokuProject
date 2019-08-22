@@ -3,24 +3,55 @@
 #include "Game.h"
 #include <stdbool.h>
 
+/* 
+ * Game Module - Source
+ * handle game commands
+ */
+
+
+/* private functions declaration */
+void cleanPuzzle();
+
+void createBoard(int blockNumOfRows, int blockNumOfCols);
+
+bool fillBoard(FILE* fp, Mode mode);
+
+int getNumOfColInBlock();
+
+int getNumOfRowInBlock();
+
+bool isCellEmpty(int col, int row);
+
+bool load(char* filepath, Mode mode);
+
+void printCustomBoard(Cell** board, int limit1, int limit2);
+
+void setFillBoard(int x, int y, int newValue);
+
+
+/* the current puzzle */
 Puzzle puzzleStrct = {0, 0, 0, 0, 0, 0, 0};
 Puzzle *puzzle = &puzzleStrct;
 
+/* return the number of rows in a block */
 int getNumOfRowInBlock()
 {
     return (puzzle->blockNumRow);
 }
 
+/* return the number of cols in a block */
 int getNumOfColInBlock()
 {
     return (puzzle->blockNumCol);
 }
 
+/* return the number of cells in a block */
 int getBlockNumOfCells()
 {
     return (puzzle->blockNumOfCells);
 }
 
+/* return the number of cells in the puzzle board */
 int getNumOfCells()
 {
     return (puzzle->numOfCells);
@@ -51,6 +82,7 @@ void cleanPuzzle()
 }
 
 /*
+ * change cell <x,y> value from 0 to newValue
  * 1<=x<=(puzzle->blockNumOfCells)
  * 1<=y<=(puzzle->blockNumOfCells)
  */
@@ -61,6 +93,7 @@ void setFillBoard(int x, int y, int newValue) {
 	cell->value = newValue;
 }
 
+/* fill all board according to file fp */
 bool fillBoard(FILE* fp, Mode mode) {
 	int i, j, N=getBlockNumOfCells(), newValue;
 	int **board=(int**)calloc(N, sizeof(int*));
@@ -204,6 +237,7 @@ bool load(char* filepath, Mode mode) {
 }
 
 /*
+ * save the current puzzle board to filepath
  * notes:
  * https://moodle.tau.ac.il/mod/forum/discuss.php?d=87711
  */
@@ -375,18 +409,20 @@ void printBoard(int mark)
 }
 
 /*
- * call setCell
+ * set cell <x,y> value to z
  */
 Move* set(int x, int y, int z, Mode mode)
 {
     return setCell(puzzle, x, y, z, mode);
 }
 
+/* return true iff the puzzle is solve */
 bool isSolved()
 {
 	return (!(puzzle->numOfEmptyCells) && !isErroneous() ? true : false);
 }
 
+/* return true iff the puzzle is erroneous */
 bool isErroneous() {
 	return (puzzle->numOfErroneous > 0 ? true : false);
 }
@@ -436,6 +472,7 @@ Move* guess(float threshold, Mode mode)
     return head;
 }
 
+/* print hint to cell <x,y> */
 void hint(int x, int y)
 {
     Puzzle *ILPSolution;
@@ -460,6 +497,7 @@ void hint(int x, int y)
     return;
 }
 
+/* print cell <x,y> legal values with their score */
 void guessHint(int x, int y)
 {
     Cell *cell;
@@ -492,6 +530,7 @@ void guessHint(int x, int y)
     return;
 }
 
+/* print the number of solutions for the puzzle */
 void numSolution()
 {
     int solNum;
@@ -500,11 +539,13 @@ void numSolution()
     return;
 }
 
+/* return the number of empty cells */
 int numOfEmptyCells() {
 	return puzzle->numOfEmptyCells;
 }
 
 /*
+ * return true iff cell <col,row> is empty
  * pre-condition: fixed cell is not empty
  */
 bool isCellEmpty(int col, int row)
@@ -512,6 +553,7 @@ bool isCellEmpty(int col, int row)
 	return ((puzzle->board[row][col]).value==0 ? true : false);
 }
 
+/* side function - delete before submission */
 void printCustomBoard(Cell** board, int limit1, int limit2)
 {
 	int i,j;
@@ -526,7 +568,7 @@ void printCustomBoard(Cell** board, int limit1, int limit2)
 	}
 	printf("\n");
 }
-
+ /* fill obvious cell values */
 Move* autoFill(Mode mode)
 {
     Move *head = NULL;
@@ -625,6 +667,7 @@ Move* autoFill(Mode mode)
     return head;
 }
 
+/* exit the program */
 void Exit()
 {
 	if (puzzle->board!=NULL)
@@ -633,6 +676,11 @@ void Exit()
     exit(0);
 }
 
+/*
+ * generates a puzzle by randomly filling x empty cells
+ * with legal values, running ILP to solve the board, 
+ * and then clearing all but y random cells
+ */
 Move* generateBoard(int x, int y)
 {
 	return generate(puzzle, x, y);

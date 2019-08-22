@@ -1,5 +1,11 @@
 #include "DoublyLinkedList.h"
 
+/* 
+ * Doubly Linked List Module - Source
+ * implement all doubly-linked-list operations
+ */
+
+
 /* Given a reference (pointer to pointer) to the head
    of a DLL and an int, appends a new node at the end  */
 void addToDoublyList(Step** head_ref, Move* movesList)

@@ -3,8 +3,11 @@
 
 #include "Stack.h"
 
-int backtrack(Puzzle *puzzle);
+/* 
+ * Solver Module - Header
+ * respobsible for the exhaustive backtrack algorithm 
+ */
 
-int choice(int *options, int size);
+int backtrack(Puzzle *puzzle);
 
 #endif
