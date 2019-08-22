@@ -187,14 +187,13 @@ bool fillBoard(FILE* fp, Mode mode) {
 }
 
 /*
- * return true if assignment to board succeeded,
- * otherwise return false (failure in this function is treated as function failed, parameter 5 in parser.c)
- * notes:
- * https://moodle.tau.ac.il/mod/forum/discuss.php?d=88124
+ * need to get orig mode and the mode we try to read with
  */
-bool load(char* filepath, Mode mode) {
+bool load(char* filepath, Mode origMode, Mode mode) {
 	FILE* fp;
-	int m,n;
+	int i,j,m,n, bkpBlockNumRow, bkpBlockNumCol;
+	Cell* cell;
+	Move *origBoard=NULL, *current;
 
 	fp = fopen(filepath, "r");
 	if (fp == NULL) {
@@ -221,12 +220,55 @@ bool load(char* filepath, Mode mode) {
 		return false;
 	}
 
+	/* backup current puzzle */
+	if (puzzle->blockNumOfCells>0)
+	{
+		bkpBlockNumRow=puzzle->blockNumRow;
+		bkpBlockNumCol=puzzle->blockNumCol;
+
+		for (i=0;i<puzzle->blockNumOfCells;i++)
+		{
+			for (j=0;j<puzzle->blockNumOfCells;j++)
+			{
+				cell=getCell(puzzle, j+1, i+1);
+				if (cell->value!=0)
+				{
+					/* use oldValue as fixed cell indicator */
+					addToList(&origBoard, j+1, i+1, cell->fixed, cell->value);
+				}
+			}
+		}
+	}
+
+	/* clean puzzle */
+	if (puzzle->board != NULL)
+	{
+		cleanPuzzle();
+	}
+
+	/* fill puzzle */
 	createBoard(m, n);
 	if (!fillBoard(fp, mode)) {
-		printBoard(1);
 		if (puzzle->board!=NULL)
 			cleanPuzzle();
 		printError(IllegalBoard, NULL, 0, 0);
+
+		/* restore puzzle */
+		if (bkpBlockNumRow>0)
+		{
+			createBoard(bkpBlockNumRow, bkpBlockNumCol);
+			current=origBoard;
+			while(current!=NULL)
+			{
+				setCell(puzzle, current->x, current->y, current->newValue, origMode);
+				if (current->oldValue==1)/* is fixed cell */
+				{
+					cell=getCell(puzzle, current->x, current->y);
+					cell->fixed=1;
+				}
+				current=current->next;
+			}
+		}
 		fclose(fp);
 		return false;
 	}
@@ -237,7 +279,6 @@ bool load(char* filepath, Mode mode) {
 }
 
 /*
- * save the current puzzle board to filepath
  * notes:
  * https://moodle.tau.ac.il/mod/forum/discuss.php?d=87711
  */
@@ -272,14 +313,11 @@ bool save(char* filepath, Mode mode) {
 }
 
 /* load puzzle for solve mode */
+ * param mode is the orig mode
+ */
 bool solve(char *filepath, Mode mode)
 {
-    if (puzzle->board != NULL)
-    {
-        cleanPuzzle();
-    }
-
-    return load(filepath, mode);
+    return load(filepath, mode, Solve);
 }
 
 /* create new empty puzzle board */
@@ -328,13 +366,11 @@ bool editNew()
 }
 
 /* load puzzle for edit mode */
+ * param mode is the orig mode
+ */
 bool editFile(char *filepath, Mode mode)
 {
-    if (puzzle->board != NULL)
-    {
-        cleanPuzzle();
-    }
-    return (load(filepath, mode));
+    return (load(filepath, mode, Edit));
 }
 
 /* 
