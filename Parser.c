@@ -220,7 +220,7 @@ Mode getCommand(Mode mode)
 	char delimiter[] = " \t\r";
 	char *fgetsRetVal, *token, *param1, *param2, *param3, *param4;
 	int x, y, z, numOfSuccessfulScan;
-	double xDouble;
+	float xFloat;
 	Move *moves;
 
 	/*
@@ -375,8 +375,7 @@ When several errors exist for the same command, follow this order:
 					if (numOfSuccessfulScan == 1 && isNumInRange(y, 1, getBlockNumOfCells()))
 					{
 						numOfSuccessfulScan = sscanf(param3, "%d", &z);
-						if (numOfSuccessfulScan == 1 && isNumInRange(y, 0, getBlockNumOfCells()))
-						{
+						if (numOfSuccessfulScan == 1 && isNumInRange(z, 0, getBlockNumOfCells())){
 							moves = set(x, y, z, mode);
 							if (moves != NULL)
 							{					/* cell is not fixed */
@@ -432,21 +431,15 @@ When several errors exist for the same command, follow this order:
 		}
 		printError(WrongMode, "Solve/Edit", 0, 0);
 		return mode;
-	}
-	else if (strcmp(token, "guess") == 0)
-	{ /*7*/
-		if (mode == Solve)
-		{
-			if (param1 != NULL)
-			{
-				numOfSuccessfulScan = sscanf(token, "%lf", &xDouble);
-				if (numOfSuccessfulScan == 1 && 0.0 <= xDouble && xDouble <= 1.0)
-				{
-					if (!isErroneous())
-					{
-						moves = guess(xDouble, mode);
-						if (moves != NULL)
-						{					/* could not guess any value */
+	} else if (strcmp(token, "guess")==0) { /*7*/
+		if (mode==Solve){
+			if (param1!=NULL && param2==NULL){
+				numOfSuccessfulScan = sscanf(param1, "%f", &xFloat);
+				if (numOfSuccessfulScan == 1 && 0.0 <= xFloat && xFloat <= 1.0){
+					if (!isErroneous()){
+						moves = guess(xFloat, mode);
+						if (moves!=NULL){ /* could not guess any value */
+
 							addStep(moves); /* addStep removes the steps from current move to the end and then updates current.nextStep to moves */
 						}
 						printBoard(mark_errors);
@@ -483,11 +476,9 @@ When several errors exist for the same command, follow this order:
 				if (numOfSuccessfulScan == 1 && isNumInRange(x, 0, numOfEmptyCells()))
 				{
 					numOfSuccessfulScan = sscanf(param2, "%d", &y);
-					if (numOfSuccessfulScan == 1 && isNumInRange(y, 0, getNumOfCells()))
-					{
+					if (numOfSuccessfulScan == 1 && isNumInRange(y, 0, getNumOfCells())){
 						moves = generateBoard(x, y);
-						if (moves != NULL)
-						{					/* could not generate board */
+						if (moves!=NULL){ /* could not generate board */
 							addStep(moves); /* addStep removes the steps from current move to the end and then updates current.nextStep to moves */
 							printBoard(mark_errors);
 						}
