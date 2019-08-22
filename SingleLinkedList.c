@@ -6,6 +6,7 @@
  */
 
 /* insert new single-linked-list node */
+/* pre-condition: in first call *head=NULL */
 void addToList(Move ** head, int x, int y, int oldValue, int newValue) {
     Move * new_node;
     new_node = (Move*)malloc(sizeof(Move));
