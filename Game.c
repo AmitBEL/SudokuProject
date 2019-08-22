@@ -22,7 +22,7 @@ int getNumOfRowInBlock();
 
 bool isCellEmpty(int col, int row);
 
-bool load(char* filepath, Mode mode);
+bool load(char* filepath, Mode origMode, Mode mode);
 
 void printCustomBoard(Cell** board, int limit1, int limit2);
 
