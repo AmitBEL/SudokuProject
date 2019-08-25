@@ -439,7 +439,7 @@ When several errors exist for the same command, follow this order:
 				numOfSuccessfulScan = sscanf(param1, "%f", &xFloat);
 				if (numOfSuccessfulScan == 1 && 0.0 <= xFloat && xFloat <= 1.0){
 					if (!isErroneous()){
-						moves = guess(xFloat, mode);
+						moves = guess(xFloat/*, mode*/);
 						if (moves!=NULL){ /* could not guess any value */
 
 							addStep(moves); /* addStep removes the steps from current move to the end and then updates current.nextStep to moves */

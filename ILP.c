@@ -23,7 +23,7 @@ void fillIntSolution(Puzzle *puzzle, int *sol, Mode mode);
 
 Move* fillCellAccordingToProb(Puzzle *puzzle, int x, int y, float *values);
 
-Move* fillThresholdSolution(Puzzle *puzzle, int *sol, float threshold, Mode mode);
+Move* fillThresholdSolution(Puzzle *puzzle, int *sol, float threshold);
 
 
 
@@ -33,7 +33,7 @@ int*** variables;
 int ILPSolvable(Puzzle *puzzle)
 {
 	int numOfVariables;
-    int *sol;
+    int *sol=NULL;
     bool success;
     success = findSolution(puzzle, true, &numOfVariables, sol);
     free(sol);
@@ -45,7 +45,7 @@ int ILPSolvable(Puzzle *puzzle)
 int ILPCellSolver(Puzzle *puzzle, int x, int y)
 {
     int numOfVariables, value=0, index, k;
-    int *sol;
+    int *sol=NULL;
     bool success;
     success = findSolution(puzzle, true, &numOfVariables, sol);
     if (success)
@@ -72,16 +72,16 @@ int ILPCellSolver(Puzzle *puzzle, int x, int y)
  * is randomly chosen according to the score as the probability.
  * fills only legal values
  */
-Move* LPSolver(Puzzle *puzzle, float threshold, Mode mode)
+Move* LPSolver(Puzzle *puzzle, float threshold/*, Mode mode*/)
 {
     Move *head = NULL;
-    int numOfVariables, value=0, index, k;
-    int *sol;
+    int numOfVariables/*, value=0, index, k*/;
+    int *sol=NULL;
     bool success;
     success = findSolution(puzzle, false, &numOfVariables, sol);
     if (success)
     {
-        head = fillThresholdSolution(puzzle, sol, threshold, mode);
+        head = fillThresholdSolution(puzzle, sol, threshold);
     }
     free(sol);
     freeVariables(puzzle->blockNumOfCells);
@@ -91,8 +91,8 @@ Move* LPSolver(Puzzle *puzzle, float threshold, Mode mode)
 /* run ILP and fill puzzle with the solution */
 Puzzle* ILPSolver(Puzzle *puzzle)
 {
-    int numOfVariables, value=0, index, k;
-    int *sol;
+    int numOfVariables/*, value=0, index, k*/;
+    int *sol=NULL;
     bool success;
     success = findSolution(puzzle, true, &numOfVariables, sol);
     if (success)
@@ -111,7 +111,7 @@ Puzzle* ILPSolver(Puzzle *puzzle)
 float* LPCellValues(Puzzle *puzzle, float threshold, int x, int y, float *values)
 {
     int numOfVariables, cellSol, index, k;
-    int *sol;
+    int *sol=NULL;
     bool success;
     success = findSolution(puzzle, false, &numOfVariables, sol);
     if (success)
@@ -142,7 +142,10 @@ float* LPCellValues(Puzzle *puzzle, float threshold, int x, int y, float *values
     return values;
 }
 
-/* use only in Solve mode for guess */
+
+/* fiil cell <x,y> by randomly choosing a value according to
+ * values[] which is the probability
+ * if none of the options is ligal don't fill it */
 Move* fillCellAccordingToProb(Puzzle *puzzle, int x, int y, float *valueVsScore)
 {
 	float sum=0, randVal=((rand()%10000)/10000.0);
@@ -243,7 +246,7 @@ void initVariables(int blockNumOfCells)
 
 void freeVariables(int blockNumOfCells)
 {
-    int i, j, k;
+    int i, j/*, k*/;
     for (i=0; i<blockNumOfCells; i++)
     {
         for (j=0; j<blockNumOfCells; j++)
@@ -332,12 +335,12 @@ void addCellsConstraints(Puzzle *puzzle/*, GRBmodel model*/)
     int i, j, k, cnt=0;
     int blockNumOfCells = puzzle->blockNumOfCells;
     int *ind = (int*)calloc(blockNumOfCells, sizeof(int));
+    int *val = (int*)calloc(blockNumOfCells, sizeof(int));
     if (ind == NULL) /* calloc failed */
     {
         printError(MemoryAllocFailed, NULL, 0, 0);
         exit(0);
     }
-    int *val = (int*)calloc(blockNumOfCells, sizeof(int));
     if (val == NULL) /* calloc failed */
     {
         printError(MemoryAllocFailed, NULL, 0, 0);
@@ -370,12 +373,12 @@ void addRowsConstraints(Puzzle *puzzle/*, GRBmodel model*/)
     int i, j, k, cnt=0;
     int blockNumOfCells = puzzle->blockNumOfCells;
     int *ind = (int*)calloc(blockNumOfCells, sizeof(int));
+    int *val = (int*)calloc(blockNumOfCells, sizeof(int));
     if (ind == NULL) /* calloc failed */
     {
         printError(MemoryAllocFailed, NULL, 0, 0);
         exit(0);
     }
-    int *val = (int*)calloc(blockNumOfCells, sizeof(int));
     if (val == NULL) /* calloc failed */
     {
         printError(MemoryAllocFailed, NULL, 0, 0);
@@ -408,12 +411,12 @@ void addColsConstraints(Puzzle *puzzle/*, GRBmodel model*/)
     int i, j, k, cnt=0;
     int blockNumOfCells = puzzle->blockNumOfCells;
     int *ind = (int*)calloc(blockNumOfCells, sizeof(int));
+    int *val = (int*)calloc(blockNumOfCells, sizeof(int));
     if (ind == NULL) /* calloc failed */
     {
         printError(MemoryAllocFailed, NULL, 0, 0);
         exit(0);
     }
-    int *val = (int*)calloc(blockNumOfCells, sizeof(int));
     if (val == NULL) /* calloc failed */
     {
         printError(MemoryAllocFailed, NULL, 0, 0);
@@ -448,12 +451,12 @@ void addBlocksConstraints(Puzzle *puzzle/*, GRBmodel model*/)
     int blockNumOfCols = puzzle->blockNumCol;
     int blockNumOfRows = puzzle->blockNumRow;
     int *ind = (int*)calloc(blockNumOfCells, sizeof(int));
+    int *val = (int*)calloc(blockNumOfCells, sizeof(int));
     if (ind == NULL) /* calloc failed */
     {
         printError(MemoryAllocFailed, NULL, 0, 0);
         exit(0);
     }
-    int *val = (int*)calloc(blockNumOfCells, sizeof(int));
     if (val == NULL) /* calloc failed */
     {
         printError(MemoryAllocFailed, NULL, 0, 0);
@@ -502,15 +505,11 @@ bool findSolution(Puzzle *puzzle, bool integer, int *numOfVariables, int *sol)
     /* GRBenv *env = NULL; 
     GRBmodel *model = NULL; */ 
     int optimstatus;
-    int blockNumOfCells = puzzle->blockNumOfCells;
+    /*int blockNumOfCells = puzzle->blockNumOfCells; - unused var*/
     double objval;
     bool success;
     /*int *sol*/ 
-    if (sol == NULL) /* calloc failed */
-    {
-        printError(MemoryAllocFailed, NULL, 0, 0);
-        exit(0);
-    }
+
     createEnvironment(/*&env, */"logFileName.log");
     createModel(/*env, &model, */"modelName");
     initVariables(puzzle->blockNumOfCells);
@@ -523,6 +522,11 @@ bool findSolution(Puzzle *puzzle, bool integer, int *numOfVariables, int *sol)
     getdblattr(/*model, */&objval);
 
     sol = (int*)calloc(*numOfVariables, sizeof(int)); 
+    if (sol == NULL) /* calloc failed */
+	{
+		printError(MemoryAllocFailed, NULL, 0, 0);
+		exit(0);
+	}
     getdblattrarray(/*model, */*numOfVariables, sol);
 
     if (optimstatus == 1/*GRB_OPTIMAL*/)
@@ -546,7 +550,7 @@ void fillIntSolution(Puzzle *puzzle, int *sol, Mode mode)
 {
     int i, j, k, index, cellSol;
     int blockNumOfCells = puzzle->blockNumOfCells;
-    Cell *cell;
+    /*Cell *cell; - unused var*/
     for (i=1; i<blockNumOfCells+1; i++)
     {
         for (j=1; j<blockNumOfCells+1; j++)
@@ -567,17 +571,8 @@ void fillIntSolution(Puzzle *puzzle, int *sol, Mode mode)
     }
 }
 
-/* fiil cell <x,y> by randomly choosing a value according to 
- * values[] which is the probability
- * if none of the options is ligal don't fill it */
-Move* fillCellAccordingToProb(Puzzle *puzzle, int x, int y, float *values)
-{
-    Move *head = NULL;
-    return head;
-}
 
-
-Move* fillThresholdSolution(Puzzle *puzzle, int *sol, float threshold, Mode mode)
+Move* fillThresholdSolution(Puzzle *puzzle, int *sol, float threshold)
 {
     Move *head = NULL;
     Move *m;

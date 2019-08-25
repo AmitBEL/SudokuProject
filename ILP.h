@@ -21,7 +21,7 @@ Puzzle* ILPSolver(Puzzle *puzzle);
  * is randomly chosen according to the score as the probability.
  * fills only legal values
  */
-Move* LPSolver(Puzzle *puzzle, float threshold, Mode mode);
+Move* LPSolver(Puzzle *puzzle, float threshold/*, Mode mode*/);
 
 /* 
  * return a list such that in index i there is the
