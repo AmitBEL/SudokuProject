@@ -43,9 +43,9 @@ void printError(ErrorMsg err, char* param1, int bound1, int bound2) {
 	else if (err == NoMoreRedo)
 		printf("no moves to redo left");
 	else if (err == FixedCell)
-		printf("cell is fixed");
+		printf("cell <%d,%d> is fixed", bound1, bound2);
 	else if (err == CellHasValue)
-		printf("cell has value");
+		printf("cell <%d,%d> already contains a value", bound1, bound2);
 	else if (err == BigBoard)
 		printf("board is too big. Max cell value must be at most 99");
 	else if (err == DimNotPositive)

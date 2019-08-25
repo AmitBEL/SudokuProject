@@ -24,7 +24,7 @@ bool isCellEmpty(int col, int row);
 
 bool load(char* filepath, Mode origMode, Mode mode);
 
-void printCustomBoard(Cell** board, int limit1, int limit2);
+int printCustomBoard(Cell** board, int limit1, int limit2);
 
 void setFillBoard(int x, int y, int newValue);
 
@@ -312,7 +312,7 @@ bool save(char* filepath, Mode mode) {
 	return true;
 }
 
-/* load puzzle for solve mode */
+/* load puzzle for solve mode 
  * param mode is the orig mode
  */
 bool solve(char *filepath, Mode mode)
@@ -365,7 +365,7 @@ bool editNew()
     return true;
 }
 
-/* load puzzle for edit mode */
+/* load puzzle for edit mode 
  * param mode is the orig mode
  */
 bool editFile(char *filepath, Mode mode)
@@ -387,7 +387,7 @@ void printBoard(int mark)
     int C = 4;           /* num of chars every cell take to print */
     int numOfdashes = M * (N * C + 1) + 1;
 
-    printf("errors: %d\n", puzzle->numOfErroneous);
+    printf("errors: %d\n", puzzle->numOfErroneous); /* TODO - delete before submission */
 
     for (l = 0; l < numOfdashes; l++) /* print first dashes row */
     {
@@ -517,12 +517,12 @@ void hint(int x, int y)
     cell = getCell(puzzle, x, y);
     if (cell->fixed)
     {
-        printf("Error: cell <%d,%d> is fixed\n", x, y);
+        printError(FixedCell, NULL, x ,y);
         return;
     }
     if (cell->value)
     {
-        printf("Error: cell <%d,%d> already contains a value\n", x, y);
+        printError(CellHasValue, NULL, x, y);
     }
     else
     {
@@ -542,12 +542,12 @@ void guessHint(int x, int y)
     cell = getCell(puzzle, x, y);
     if (cell->fixed)
     {
-        printf("Error: cell <%d,%d> is fixed\n", x, y);
+        printError(FixedCell, NULL, x ,y);
         return;
     }
     if (cell->value)
     {
-        printf("Error: cell <%d,%d> already contains a value\n", x, y);
+        printError(CellHasValue, NULL, x, y);
     }
     else
     {
@@ -590,7 +590,7 @@ bool isCellEmpty(int col, int row)
 }
 
 /* side function - delete before submission */
-void printCustomBoard(Cell** board, int limit1, int limit2)
+int printCustomBoard(Cell** board, int limit1, int limit2)
 {
 	int i,j;
 	printf("\nfill (%d,%d):\n", limit1, limit2);
