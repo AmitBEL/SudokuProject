@@ -216,7 +216,7 @@ void UpdateMarkErrors(char *value)
 /* handle user input */
 Mode getCommand(Mode mode)
 {
-	char input[MAX_INPUT_CHARS], ch;
+	char input[MAX_INPUT_CHARS];
 	char delimiter[] = " \t\r";
 	char *fgetsRetVal, *token, *param1, *param2, *param3, *param4;
 	int x, y, z, numOfSuccessfulScan;
@@ -235,15 +235,17 @@ Mode getCommand(Mode mode)
 		printf("Welcome sudoku game!");
 
 	printf("\nEnter a command:\n");
+	/* read all buffer to reset the reader and init the input array */
+	for (x=0;x<MAX_INPUT_CHARS;x++)
+	{
+		input[x]='\0';
+	}
 	fgetsRetVal = fgets(input, MAX_INPUT_CHARS, stdin);
 
 	if (input[MAX_INPUT_CHARS - 2] != '\n' && input[MAX_INPUT_CHARS - 2] != '\0')
 	{ /* ensure 1<=command-length<=256 chars */
 		printError(TooLongInput, NULL, 0, 0);
-		for (x = 0; x < 300 && (ch = getchar()) != '\n'; x++)
-		{
-			putchar(ch);
-		}
+		while (getchar()!='\n');
 		return mode;
 	}
 
@@ -513,11 +515,10 @@ When several errors exist for the same command, follow this order:
 		{
 			if (param1 == NULL)
 			{
-				if (!undo(mode))
-				{
+				if (undo(mode))
+					printBoard(mark_errors);
+				else
 					printError(NoMoreUndo, NULL, 0, 0);
-				}
-				printBoard(mark_errors);
 				return mode;
 			}
 			else
@@ -535,11 +536,10 @@ When several errors exist for the same command, follow this order:
 		{
 			if (param1 == NULL)
 			{
-				if (!redo(mode))
-				{
+				if (redo(mode))
+					printBoard(mark_errors);
+				else
 					printError(NoMoreRedo, NULL, 0, 0);
-				}
-				printBoard(mark_errors);
 				return mode;
 			}
 			else
@@ -715,7 +715,7 @@ When several errors exist for the same command, follow this order:
 				{
 					moves = autoFill(mode);
 					if (moves != NULL)
-					{					/* could not fill any cell */
+					{
 						addStep(moves); /* addStep removes the steps from current move to the end and then updates current.nextStep to moves */
 					}
 					printBoard(mark_errors);
