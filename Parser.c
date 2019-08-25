@@ -515,11 +515,10 @@ When several errors exist for the same command, follow this order:
 		{
 			if (param1 == NULL)
 			{
-				if (!undo(mode))
-				{
+				if (undo(mode))
+					printBoard(mark_errors);
+				else
 					printError(NoMoreUndo, NULL, 0, 0);
-				}
-				printBoard(mark_errors);
 				return mode;
 			}
 			else
@@ -537,11 +536,10 @@ When several errors exist for the same command, follow this order:
 		{
 			if (param1 == NULL)
 			{
-				if (!redo(mode))
-				{
+				if (redo(mode))
+					printBoard(mark_errors);
+				else
 					printError(NoMoreRedo, NULL, 0, 0);
-				}
-				printBoard(mark_errors);
 				return mode;
 			}
 			else
@@ -717,7 +715,7 @@ When several errors exist for the same command, follow this order:
 				{
 					moves = autoFill(mode);
 					if (moves != NULL)
-					{					/* could not fill any cell */
+					{
 						addStep(moves); /* addStep removes the steps from current move to the end and then updates current.nextStep to moves */
 					}
 					printBoard(mark_errors);

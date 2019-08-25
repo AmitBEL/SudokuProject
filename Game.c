@@ -663,8 +663,8 @@ Move* autoFill(Mode mode)
                 value = toFill->board[i][j].value;
                 if (value)
                 {
+                	printf("    cell <%d,%d> changed from %d to %d", j+1, i+1, cell->value, value); /* not a comment but part of the game! */
                 	m=set(j + 1, i + 1, value, mode);
-                	printf("<%d,%d> after set", j+1, i+1);
                     concat(&head, &m);
                     printf(" after concat\n");
                 }

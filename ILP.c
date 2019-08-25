@@ -142,6 +142,33 @@ float* LPCellValues(Puzzle *puzzle, float threshold, int x, int y, float *values
     return values;
 }
 
+/* use only in Solve mode for guess */
+Move* fillCellAccordingToProb(Puzzle *puzzle, int x, int y, float *valueVsScore)
+{
+	float sum=0, randVal=((rand()%10000)/10000.0);
+	int i=0, N=puzzle->blockNumOfCells;
+
+	/* sum the scores */
+	for (i=0;i<N;i++)
+		sum+=valueVsScore[i];
+	if (sum==0)
+		return NULL;
+
+	/* change the score of each cell to its relative probability */
+	for (i=0;i<N;i++)
+			valueVsScore[i]=(valueVsScore[i]/sum);
+
+	/* choose value randomly */
+	i=0;
+	while (i<N && sum<=randVal)
+	{
+		sum+=valueVsScore[i];
+		i++;
+	}
+
+	return setCell(puzzle, x, y, i, Solve); /* the returned value is random value */
+}
+
 void initVariables(int blockNumOfCells)
 {
     int i, j, k, l;
