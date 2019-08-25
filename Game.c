@@ -486,32 +486,12 @@ bool validate(bool printResult)
  */
 Move* guess(float threshold, Mode mode)
 {
-    Move *head = NULL;
-    Puzzle *LPSolution;
-    Cell *cell;
-    Move* m;
-    int i, j;
-    
-    LPSolution = LPSolver(puzzle, threshold);
-    for (i = 0; i < puzzle->blockNumOfCells; i++)
-    {
-        for (j = 0; j < puzzle->blockNumOfCells; j++)
-        {
-            cell = getCell(puzzle, i + 1, j + 1);
-            if (!(cell->fixed))
-            {
-            	m=set(i + 1, j + 1, LPSolution->board[j][i].value, mode);
-                concat(&head, &m);
-            }
-        }
-    }
-    return head;
+    return LPSolver(puzzle, threshold, mode);
 }
 
 /* print hint to cell <x,y> */
 void hint(int x, int y)
 {
-    Puzzle *ILPSolution;
     Cell *cell;
     int value;
     cell = getCell(puzzle, x, y);
@@ -526,8 +506,7 @@ void hint(int x, int y)
     }
     else
     {
-        ILPSolution = ILPSolver(puzzle);
-        value = ILPSolution->board[y - 1][x - 1].value;
+        value = ILPCellSolver(puzzle, x, y);
         printf("Hint: set cell <%d,%d> to %d\n", x, y, value);
     }
     return;
@@ -552,7 +531,7 @@ void guessHint(int x, int y)
     else
     {
         values = (float *)calloc(puzzle->blockNumOfCells, sizeof(float));
-        values = LPCellValues(puzzle, 0, cell, values);
+        values = LPCellValues(puzzle, 0, x, y, values);
         printf("Hint: cell <%d,%d> legal values are\n", x, y);
         for (i = 0; i < puzzle->blockNumOfCells; i++)
         {
