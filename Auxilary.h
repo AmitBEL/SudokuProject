@@ -22,6 +22,8 @@ typedef struct Puzzle {
 	int numOfErroneous;
 } Puzzle;
 
+bool isBoardErr(Puzzle *puzzle);
+
 bool isNumInRange(int num, int minNum, int maxNum);
 
 Cell* getCell(Puzzle *puzzle, int x, int y);

@@ -460,7 +460,7 @@ bool isSolved()
 
 /* return true iff the puzzle is erroneous */
 bool isErroneous() {
-	return (puzzle->numOfErroneous > 0 ? true : false);
+	return isBoardErr(puzzle);/*(puzzle->numOfErroneous > 0 ? true : false);*/
 }
 
 /* check if the board is solvable */
@@ -484,7 +484,7 @@ bool validate(bool printResult)
  * fill empty cells using LP
  * fill only legal values with score greater than threshold
  */
-Move* guess(float threshold/*, Mode mode*/)
+Move* guess(double threshold/*, Mode mode*/)
 {
     return LPSolver(puzzle, threshold/*, mode*/);
 }
@@ -516,7 +516,7 @@ void hint(int x, int y)
 void guessHint(int x, int y)
 {
     Cell *cell;
-    float *values;
+    double *values;
     int i;
     cell = getCell(puzzle, x, y);
     if (cell->fixed)
@@ -530,7 +530,7 @@ void guessHint(int x, int y)
     }
     else
     {
-        values = (float *)calloc(puzzle->blockNumOfCells, sizeof(float));
+        values = (double *)calloc(puzzle->blockNumOfCells, sizeof(double));
         values = LPCellValues(puzzle, 0, x, y, values);
         printf("Hint: cell <%d,%d> legal values are\n", x, y);
         for (i = 0; i < puzzle->blockNumOfCells; i++)
