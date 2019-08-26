@@ -24,7 +24,7 @@ bool isCellEmpty(int col, int row);
 
 bool load(char* filepath, Mode origMode, Mode mode);
 
-int printCustomBoard(Cell** board, int limit1, int limit2);
+void printCustomBoard(Cell** board, int limit1, int limit2);
 
 void setFillBoard(int x, int y, int newValue);
 
@@ -484,9 +484,9 @@ bool validate(bool printResult)
  * fill empty cells using LP
  * fill only legal values with score greater than threshold
  */
-Move* guess(float threshold, Mode mode)
+Move* guess(float threshold/*, Mode mode*/)
 {
-    return LPSolver(puzzle, threshold, mode);
+    return LPSolver(puzzle, threshold/*, mode*/);
 }
 
 /* print hint to cell <x,y> */
@@ -569,7 +569,7 @@ bool isCellEmpty(int col, int row)
 }
 
 /* side function - delete before submission */
-int printCustomBoard(Cell** board, int limit1, int limit2)
+void printCustomBoard(Cell** board, int limit1, int limit2)
 {
 	int i,j;
 	printf("\nfill (%d,%d):\n", limit1, limit2);
@@ -663,8 +663,8 @@ Move* autoFill(Mode mode)
                 value = toFill->board[i][j].value;
                 if (value)
                 {
+                	printf("    cell <%d,%d> changed from %d to %d", j+1, i+1, cell->value, value); /* not a comment but part of the game! */
                 	m=set(j + 1, i + 1, value, mode);
-                	printf("<%d,%d> after set", j+1, i+1);
                     concat(&head, &m);
                     printf(" after concat\n");
                 }
