@@ -25,9 +25,9 @@ Move *fillCellAccordingToProb(Puzzle *puzzle, int x, int y, double *values);
 
 Move *fillThresholdSolution(Puzzle *puzzle, double *sol, double threshold);
 
-int createEnvironment(GRBenv **env, char *logFileName, GRBenv *env);
+int createEnvironment(GRBenv **env, char *logFileName);
 
-int createModel(GRBenv *env, GRBmodel *model, char *modelName, GRBenv *env);
+int createModel(GRBenv *env, GRBmodel *model, char *modelName);
 
 int addVars(GRBmodel *model, GRBenv *env, int numOfVarsToAdd, double *obj, char *vtype, char GRB_VTYPE);
 
@@ -51,7 +51,7 @@ int getDblAttrArray(GRBmodel *model, int numOfVariables, double *sol);
 
 int ***variables;
 
-int createEnvironment(GRBenv **env, char *logFileName, GRBenv *env)
+int createEnvironment(GRBenv **env, char *logFileName)
 {
     int error = 0;
     error = GRBloadenv(env, logFileName);
@@ -71,7 +71,7 @@ int createEnvironment(GRBenv **env, char *logFileName, GRBenv *env)
     return 0;
 }
 
-int createModel(GRBenv *env, GRBmodel *model, char *modelName, GRBenv *env)
+int createModel(GRBenv *env, GRBmodel *model, char *modelName)
 {
     int error = 0;
     error = GRBnewmodel(env, &model, modelName, 0, NULL, NULL, NULL, NULL, NULL);
@@ -119,7 +119,7 @@ int updateModel(GRBmodel *model, GRBenv *env)
     return 0;
 }
 
-int addConstraint(GRBmodel model, GRBenv *env, int numOfVars, int *ind, double *val, char *consName)
+int addConstraint(GRBmodel *model, GRBenv *env, int numOfVars, int *ind, double *val, char *consName)
 {
     int error = 0;
     error = GRBaddconstr(model, numOfVars, ind, val, GRB_LESS_EQUAL, 1, consName);
@@ -404,7 +404,7 @@ void freeVariables(int blockNumOfCells)
     free(variables);
 }
 
-int updateVariables(Puzzle *puzzle, bool integer, GRBmodel model, GRBenv *env)
+int updateVariables(Puzzle *puzzle, bool integer, GRBmodel *model, GRBenv *env)
 {
     int i, j, k, cnt = 1;
     int blockNumOfCells = puzzle->blockNumOfCells;
@@ -483,7 +483,7 @@ int updateVariables(Puzzle *puzzle, bool integer, GRBmodel model, GRBenv *env)
     return (cnt - 1);
 }
 
-int addCellsConstraints(Puzzle *puzzle, GRBmodel model, GRBenv *env)
+int addCellsConstraints(Puzzle *puzzle, GRBmodel *model, GRBenv *env)
 {
     int i, j, k, num = 0, cnt = 0;
     int blockNumOfCells = puzzle->blockNumOfCells;
@@ -530,7 +530,7 @@ int addCellsConstraints(Puzzle *puzzle, GRBmodel model, GRBenv *env)
     return 0;
 }
 
-int addRowsConstraints(Puzzle *puzzle, GRBmodel model, GRBenv *env)
+int addRowsConstraints(Puzzle *puzzle, GRBmodel *model, GRBenv *env)
 {
     int i, j, k, num = 0, cnt = 0;
     int blockNumOfCells = puzzle->blockNumOfCells;
@@ -577,7 +577,7 @@ int addRowsConstraints(Puzzle *puzzle, GRBmodel model, GRBenv *env)
     return 0;
 }
 
-int addColsConstraints(Puzzle *puzzle, GRBmodel model, GRBenv *env)
+int addColsConstraints(Puzzle *puzzle, GRBmodel *model, GRBenv *env)
 {
     int i, j, k, num = 0, cnt = 0;
     int blockNumOfCells = puzzle->blockNumOfCells;
@@ -624,7 +624,7 @@ int addColsConstraints(Puzzle *puzzle, GRBmodel model, GRBenv *env)
     return 0;
 }
 
-int addBlocksConstraints(Puzzle *puzzle, GRBmodel model, GRBenv *env)
+int addBlocksConstraints(Puzzle *puzzle, GRBmodel *model, GRBenv *env)
 {
     int i, j, k, n, m, num = 0, index, cnt = 0;
     int blockNumOfCells = puzzle->blockNumOfCells;
@@ -682,7 +682,7 @@ int addBlocksConstraints(Puzzle *puzzle, GRBmodel model, GRBenv *env)
     return 0;
 }
 
-int addConstraints(Puzzle *puzzle, GRBmodel model, GRBenv *env)
+int addConstraints(Puzzle *puzzle, GRBmodel *model, GRBenv *env)
 {
     if (addCellsConstraints(puzzle, model, env) == -1)
         return -1;
