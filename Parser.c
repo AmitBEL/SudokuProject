@@ -220,7 +220,7 @@ Mode getCommand(Mode mode)
 	char delimiter[] = " \t\r";
 	char *fgetsRetVal, *token, *param1, *param2, *param3, *param4;
 	int x, y, z, numOfSuccessfulScan;
-	float xFloat;
+	double xDouble;
 	Move *moves;
 
 	/*
@@ -436,10 +436,10 @@ When several errors exist for the same command, follow this order:
 	} else if (strcmp(token, "guess")==0) { /*7*/
 		if (mode==Solve){
 			if (param1!=NULL && param2==NULL){
-				numOfSuccessfulScan = sscanf(param1, "%f", &xFloat);
-				if (numOfSuccessfulScan == 1 && 0.0 <= xFloat && xFloat <= 1.0){
+				numOfSuccessfulScan = sscanf(param1, "%lf", &xDouble);
+				if (numOfSuccessfulScan == 1 && 0.0 <= xDouble && xDouble <= 1.0){
 					if (!isErroneous()){
-						moves = guess(xFloat/*, mode*/);
+						moves = guess(xDouble/*, mode*/);
 						if (moves!=NULL){ /* could not guess any value */
 
 							addStep(moves); /* addStep removes the steps from current move to the end and then updates current.nextStep to moves */

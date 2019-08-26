@@ -1,5 +1,9 @@
 #include "Auxilary.h"
 
+/* return true iff the puzzle is erroneous */
+bool isBoardErr(Puzzle *puzzle) {
+	return (puzzle->numOfErroneous > 0 ? true : false);
+}
 
 /*
  * Check whether numOfFixed is between minNum and maxNum
