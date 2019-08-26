@@ -2,6 +2,7 @@
 #define ILP_H_
 
 #include "Auxilary.h"
+#include "gurobi_c.h"
 
 
 /* run ILP and return if there is a solution or not */
