@@ -7,45 +7,45 @@ void freeVariables(int blockNumOfCells);
 
 int updateVariables(Puzzle *puzzle, bool integer, GRBmodel model, GRBenv *env);
 
-int addCellsConstraints(Puzzle *puzzle, GRBmodel model);
+int addCellsConstraints(Puzzle *puzzle, GRBmodel model, GRBenv *env);
 
-int addRowsConstraints(Puzzle *puzzle, GRBmodel model);
+int addRowsConstraints(Puzzle *puzzle, GRBmodel model, GRBenv *env);
 
-int addColsConstraints(Puzzle *puzzle, GRBmodel model);
+int addColsConstraints(Puzzle *puzzle, GRBmodel model, GRBenv *env);
 
-int addBlocksConstraints(Puzzle *puzzle, GRBmodel model);
+int addBlocksConstraints(Puzzle *puzzle, GRBmodel model, GRBenv *env);
 
-int addConstraints(Puzzle *puzzle, GRBmodel model);
+int addConstraints(Puzzle *puzzle, GRBmodel model, GRBenv *env);
 
-bool findSolution(Puzzle *puzzle, bool integer, int *numOfVariables, int *sol);
+bool findSolution(Puzzle *puzzle, bool integer, int *numOfVariables, double *sol);
 
-void fillIntSolution(Puzzle *puzzle, int *sol, Mode mode);
+void fillIntSolution(Puzzle *puzzle, double *sol, Mode mode);
 
-Move *fillCellAccordingToProb(Puzzle *puzzle, int x, int y, float *values);
+Move *fillCellAccordingToProb(Puzzle *puzzle, int x, int y, double *values);
 
-Move *fillThresholdSolution(Puzzle *puzzle, int *sol, float threshold);
+Move *fillThresholdSolution(Puzzle *puzzle, double *sol, double threshold);
 
 int createEnvironment(GRBenv **env, char *logFileName, GRBenv *env);
 
 int createModel(GRBenv *env, GRBmodel *model, char *modelName, GRBenv *env);
 
-int addVars(GRBmodel *model, GRBenv *env, int numOfVarsToAdd, int *obj, int *vtype, int GRB_VTYPE);
+int addVars(GRBmodel *model, GRBenv *env, int numOfVarsToAdd, double *obj, char *vtype, char GRB_VTYPE);
 
-int setIntAttr(GRBmodel *model);
+int setIntAttr(GRBmodel *model, GRBenv *env);
 
 int updateModel(GRBmodel *model, GRBenv *env);
 
-int addConstraint(GRBmodel model, int numOfVars, int *ind, int *val, char *consName);
+int addConstraint(GRBmodel model, int numOfVars, int *ind, double *val, char *consName);
 
-int optimize(GRBmodel *model);
+int optimize(GRBmodel *model, GRBenv *env);
 
-int write(model, char *lpFileName);
+int write(GRBmodel model, char *lpFileName, GRBenv *env);
 
-int getIntAttr(GRBmodel *model, int *optimstatus);
+int getIntAttr(GRBmodel *model, int *optimstatus, GRBenv *env);
 
-int getDblAttr(GRBmodel *model, int *objval);
+int getDblAttr(GRBmodel *model, double *objval, GRBenv *env);
 
-int getDblAttrArray(GRBmodel *model, int numOfVariables, int *sol);
+int getDblAttrArray(GRBmodel *model, int numOfVariables, double *sol);
 
 /*--------*/
 
@@ -64,7 +64,7 @@ int createEnvironment(GRBenv **env, char *logFileName, GRBenv *env)
     error = GRBsetintparam(*env, GRB_INT_PAR_LOGTOCONSOLE, 0);
     if (error)
     {
-        printf("ERROR %d GRBsetintattr(): %s\n", error, GRBgeterrormsg(env));
+        printf("ERROR %d GRBsetintparam(): %s\n", error, GRBgeterrormsg(env));
         return -1;
     }
 
@@ -83,7 +83,7 @@ int createModel(GRBenv *env, GRBmodel *model, char *modelName, GRBenv *env)
     return 0;
 }
 
-int addVars(GRBmodel *model, GRBenv *env, int numOfVarsToAdd, int *obj, int *vtype, int GRB_VTYPE)
+int addVars(GRBmodel *model, GRBenv *env, int numOfVarsToAdd, double *obj, char *vtype, char GRB_VTYPE)
 {
     int error = 0;
     error = GRBaddvars(model, numOfVarsToAdd, 0, NULL, NULL, NULL, obj, NULL, 1, vtype, NULL);
@@ -95,7 +95,17 @@ int addVars(GRBmodel *model, GRBenv *env, int numOfVarsToAdd, int *obj, int *vty
     return 0;
 }
 
-int setIntAttr(GRBmodel *model);
+int setIntAttr(GRBmodel *model, GRBenv *env)
+{
+    int error = 0;
+    error = GRBsetintattr(model, GRB_INT_ATTR_MODELSENSE, GRB_MAXIMIZE);
+    if (error)
+    {
+        printf("ERROR %d GRBsetintattr(): %s\n", error, GRBgeterrormsg(env));
+        return -1;
+    }
+    return 0;
+}
 
 int updateModel(GRBmodel *model, GRBenv *env)
 {
@@ -109,11 +119,67 @@ int updateModel(GRBmodel *model, GRBenv *env)
     return 0;
 }
 
+int addConstraint(GRBmodel model, GRBenv *env, int numOfVars, int *ind, double *val, char *consName)
+{
+    int error = 0;
+    error = GRBaddconstr(model, numOfVars, ind, val, GRB_LESS_EQUAL, 1, consName);
+    if (error)
+    {
+        printf("ERROR %d 1st GRBaddconstr(): %s\n", error, GRBgeterrormsg(env));
+        return -1;
+    }
+    return 0;
+}
+
+int optimize(GRBmodel *model, GRBenv *env)
+{
+    int error = 0;
+    error = GRBoptimize(model);
+    if (error) {
+        printf("ERROR %d GRBoptimize(): %s\n", error, GRBgeterrormsg(env));
+        return -1;
+    }
+    return 0;
+}
+
+int write(GRBmodel *model, char *lpFileName, GRBenv *env)
+{
+    int error = 0;
+    error = GRBwrite(model, lpFileName);
+    if (error) {
+        printf("ERROR %d GRBwrite(): %s\n", error, GRBgeterrormsg(env));
+        return -1;
+    }
+    return 0;
+}
+
+int getIntAttr(GRBmodel *model, int *optimstatus, GRBenv *env)
+{
+    int error = 0;
+    error = GRBgetintattr(model, GRB_INT_ATTR_STATUS, &optimstatus);
+    if (error) {
+        printf("ERROR %d GRBgetintattr(): %s\n", error, GRBgeterrormsg(env));
+        return -1;
+    }
+    return 0;
+}
+
+int getDblAttr(GRBmodel *model, double *objval, GRBenv *env)
+{
+    int error = 0;
+    error = GRBgetdblattr(model, GRB_DBL_ATTR_OBJVAL, objval);
+    if (error) {
+        printf("ERROR %d GRBgettdblattr(): %s\n", error, GRBgeterrormsg(env));
+        return -1;
+    }
+    return 0;
+}
+
 /* run ILP and return if there is a solution or not */
 int ILPSolvable(Puzzle *puzzle)
 {
     int numOfVariables;
-    int *sol = NULL;
+    double *sol = NULL;
     bool success;
     success = findSolution(puzzle, true, &numOfVariables, sol);
     free(sol);
@@ -125,7 +191,7 @@ int ILPSolvable(Puzzle *puzzle)
 int ILPCellSolver(Puzzle *puzzle, int x, int y)
 {
     int numOfVariables, value = 0, index, k;
-    int *sol = NULL;
+    double *sol = NULL;
     bool success;
     success = findSolution(puzzle, true, &numOfVariables, sol);
     if (success)
@@ -152,11 +218,11 @@ int ILPCellSolver(Puzzle *puzzle, int x, int y)
  * is randomly chosen according to the score as the probability.
  * fills only legal values
  */
-Move *LPSolver(Puzzle *puzzle, float threshold /*, Mode mode*/)
+Move *LPSolver(Puzzle *puzzle, double threshold /*, Mode mode*/)
 {
     Move *head = NULL;
     int numOfVariables /*, value=0, index, k*/;
-    int *sol = NULL;
+    double *sol = NULL;
     bool success;
     success = findSolution(puzzle, false, &numOfVariables, sol);
     if (success)
@@ -172,7 +238,7 @@ Move *LPSolver(Puzzle *puzzle, float threshold /*, Mode mode*/)
 Puzzle *ILPSolver(Puzzle *puzzle)
 {
     int numOfVariables /*, value=0, index, k*/;
-    int *sol = NULL;
+    double *sol = NULL;
     bool success;
     success = findSolution(puzzle, true, &numOfVariables, sol);
     if (success)
@@ -188,10 +254,11 @@ Puzzle *ILPSolver(Puzzle *puzzle)
  * return a list such that in index i there is the
  * probability that the value of cell is i+1 
  */
-float *LPCellValues(Puzzle *puzzle, float threshold, int x, int y, float *values)
+double *LPCellValues(Puzzle *puzzle, double threshold, int x, int y, double *values)
 {
-    int numOfVariables, cellSol, index, k;
-    int *sol = NULL;
+    int numOfVariables, index, k;
+    double cellSol;
+    double *sol = NULL;
     bool success;
     success = findSolution(puzzle, false, &numOfVariables, sol);
     if (success)
@@ -225,9 +292,9 @@ float *LPCellValues(Puzzle *puzzle, float threshold, int x, int y, float *values
 /* fiil cell <x,y> by randomly choosing a value according to
  * values[] which is the probability
  * if none of the options is ligal don't fill it */
-Move *fillCellAccordingToProb(Puzzle *puzzle, int x, int y, float *valueVsScore)
+Move *fillCellAccordingToProb(Puzzle *puzzle, int x, int y, double *valueVsScore)
 {
-    float sum = 0, randVal = ((rand() % 10000) / 10000.0);
+    double sum = 0, randVal = ((rand() % 10000) / 10000.0);
     int i = 0, N = puzzle->blockNumOfCells;
 
     /* sum the scores */
@@ -341,7 +408,9 @@ int updateVariables(Puzzle *puzzle, bool integer, GRBmodel model, GRBenv *env)
 {
     int i, j, k, cnt = 1;
     int blockNumOfCells = puzzle->blockNumOfCells;
-    int *values, *obj, *vtype;
+    double *obj;
+    int *values;
+    char *vtype;
     Cell *cell;
     values = (int *)calloc(blockNumOfCells + 1, sizeof(int));
     if (values == NULL) /* calloc failed */
@@ -349,14 +418,14 @@ int updateVariables(Puzzle *puzzle, bool integer, GRBmodel model, GRBenv *env)
         printError(MemoryAllocFailed, NULL, 0, 0);
         exit(0);
     }
-    obj = (int *)calloc(blockNumOfCells, sizeof(int));
+    obj = (double *)calloc(blockNumOfCells, sizeof(double));
     if (obj == NULL) /* calloc failed */
     {
         printError(MemoryAllocFailed, NULL, 0, 0);
         free(values);
         exit(0);
     }
-    vtype = (int *)calloc(blockNumOfCells, sizeof(int));
+    vtype = (char *)calloc(blockNumOfCells, sizeof(char));
     if (vtype == NULL) /* calloc failed */
     {
         printError(MemoryAllocFailed, NULL, 0, 0);
@@ -401,7 +470,7 @@ int updateVariables(Puzzle *puzzle, bool integer, GRBmodel model, GRBenv *env)
         free(vtype);
         return -1;
     }
-    if (setIntAttr(model) == -1)
+    if (setIntAttr(model, env) == -1)
     {
         free(values);
         free(obj);
@@ -414,19 +483,20 @@ int updateVariables(Puzzle *puzzle, bool integer, GRBmodel model, GRBenv *env)
     return (cnt - 1);
 }
 
-int addCellsConstraints(Puzzle *puzzle, GRBmodel model)
+int addCellsConstraints(Puzzle *puzzle, GRBmodel model, GRBenv *env)
 {
     int i, j, k, num = 0, cnt = 0;
     int blockNumOfCells = puzzle->blockNumOfCells;
     char temp[9] = {0};
-    int *ind, *val;
+    int *ind;
+    double *val;
     ind = (int *)calloc(blockNumOfCells, sizeof(int));
     if (ind == NULL) /* calloc failed */
     {
         printError(MemoryAllocFailed, NULL, 0, 0);
         exit(0);
     }
-    val = (int *)calloc(blockNumOfCells, sizeof(int));
+    val = (double *)calloc(blockNumOfCells, sizeof(double));
     if (val == NULL) /* calloc failed */
     {
         printError(MemoryAllocFailed, NULL, 0, 0);
@@ -447,7 +517,7 @@ int addCellsConstraints(Puzzle *puzzle, GRBmodel model)
                 }
             }
             sprintf(temp, "a%d", num);
-            if (addConstraint(model, cnt, ind, val, temp) == -1)
+            if (addConstraint(model, env, cnt, ind, val, temp) == -1)
                 free(ind);
             free(val);
             return -1;
@@ -460,19 +530,20 @@ int addCellsConstraints(Puzzle *puzzle, GRBmodel model)
     return 0;
 }
 
-int addRowsConstraints(Puzzle *puzzle, GRBmodel model)
+int addRowsConstraints(Puzzle *puzzle, GRBmodel model, GRBenv *env)
 {
     int i, j, k, num = 0, cnt = 0;
     int blockNumOfCells = puzzle->blockNumOfCells;
     char temp[9] = {0};
-    int *ind, *val;
+    int *ind;
+    double *val;
     ind = (int *)calloc(blockNumOfCells, sizeof(int));
     if (ind == NULL) /* calloc failed */
     {
         printError(MemoryAllocFailed, NULL, 0, 0);
         exit(0);
     }
-    val = (int *)calloc(blockNumOfCells, sizeof(int));
+    val = (double *)calloc(blockNumOfCells, sizeof(double));
     if (val == NULL) /* calloc failed */
     {
         printError(MemoryAllocFailed, NULL, 0, 0);
@@ -493,7 +564,7 @@ int addRowsConstraints(Puzzle *puzzle, GRBmodel model)
                 }
             }
             sprintf(temp, "b%d", num);
-            if (addConstraint(model, cnt, ind, val, temp) == -1)
+            if (addConstraint(model, env, cnt, ind, val, temp) == -1)
                 free(ind);
             free(val);
             return -1;
@@ -506,19 +577,20 @@ int addRowsConstraints(Puzzle *puzzle, GRBmodel model)
     return 0;
 }
 
-int addColsConstraints(Puzzle *puzzle, GRBmodel model)
+int addColsConstraints(Puzzle *puzzle, GRBmodel model, GRBenv *env)
 {
     int i, j, k, num = 0, cnt = 0;
     int blockNumOfCells = puzzle->blockNumOfCells;
     char temp[9] = {0};
-    int *ind, *val;
+    int *ind;
+    double *val;
     ind = (int *)calloc(blockNumOfCells, sizeof(int));
     if (ind == NULL) /* calloc failed */
     {
         printError(MemoryAllocFailed, NULL, 0, 0);
         exit(0);
     }
-    val = (int *)calloc(blockNumOfCells, sizeof(int));
+    val = (double *)calloc(blockNumOfCells, sizeof(double));
     if (val == NULL) /* calloc failed */
     {
         printError(MemoryAllocFailed, NULL, 0, 0);
@@ -539,7 +611,7 @@ int addColsConstraints(Puzzle *puzzle, GRBmodel model)
                 }
             }
             sprintf(temp, "c%d", num);
-            if (addConstraint(model, cnt, ind, val, temp) == -1)
+            if (addConstraint(model, env, cnt, ind, val, temp) == -1)
                 free(ind);
             free(val);
             return -1;
@@ -552,21 +624,22 @@ int addColsConstraints(Puzzle *puzzle, GRBmodel model)
     return 0;
 }
 
-int addBlocksConstraints(Puzzle *puzzle, GRBmodel model)
+int addBlocksConstraints(Puzzle *puzzle, GRBmodel model, GRBenv *env)
 {
     int i, j, k, n, m, num = 0, index, cnt = 0;
     int blockNumOfCells = puzzle->blockNumOfCells;
     int blockNumOfCols = puzzle->blockNumCol;
     int blockNumOfRows = puzzle->blockNumRow;
     char temp[9] = {0};
-    int *ind, *val;
+    int *ind;
+    double *val;
     ind = (int *)calloc(blockNumOfCells, sizeof(int));
     if (ind == NULL) /* calloc failed */
     {
         printError(MemoryAllocFailed, NULL, 0, 0);
         exit(0);
     }
-    val = (int *)calloc(blockNumOfCells, sizeof(int));
+    val = (double *)calloc(blockNumOfCells, sizeof(double));
     if (val == NULL) /* calloc failed */
     {
         printError(MemoryAllocFailed, NULL, 0, 0);
@@ -593,10 +666,12 @@ int addBlocksConstraints(Puzzle *puzzle, GRBmodel model)
                     }
                 }
                 sprintf(temp, "d%d", num);
-                if (addConstraint(model, cnt, ind, val, temp) == -1)
+                if (addConstraint(model, env, cnt, ind, val, temp) == -1)
+                {
                     free(ind);
-                free(val);
-                return -1;
+                    free(val);
+                    return -1;
+                }
                 num++;
                 cnt = 0;
             }
@@ -607,20 +682,20 @@ int addBlocksConstraints(Puzzle *puzzle, GRBmodel model)
     return 0;
 }
 
-int addConstraints(Puzzle *puzzle, GRBmodel model)
+int addConstraints(Puzzle *puzzle, GRBmodel model, GRBenv *env)
 {
-    if (addCellsConstraints(puzzle, model) == -1)
+    if (addCellsConstraints(puzzle, model, env) == -1)
         return -1;
-    if (addRowsConstraints(puzzle, model) == -1)
+    if (addRowsConstraints(puzzle, model, env) == -1)
         return -1;
-    if (addColsConstraints(puzzle, model) == -1)
+    if (addColsConstraints(puzzle, model, env) == -1)
         return -1;
-    if (addBlocksConstraints(puzzle, model) == -1)
+    if (addBlocksConstraints(puzzle, model, env) == -1)
         return -1;
     return 0;
 }
 
-bool findSolution(Puzzle *puzzle, bool integer, int *numOfVariables, int *sol)
+bool findSolution(Puzzle *puzzle, bool integer, int *numOfVariables, double *sol)
 {
     GRBenv *env = NULL;
     GRBmodel *model = NULL;
@@ -636,18 +711,18 @@ bool findSolution(Puzzle *puzzle, bool integer, int *numOfVariables, int *sol)
     *numOfVariables = updateVariables(puzzle, integer, model, env);
     if (updateModel(model, env) == -1)
         return false;
-    if (addConstraints(puzzle, model) == -1)
+    if (addConstraints(puzzle, model, env) == -1)
         return false;
-    if (optimize(model) == -1)
+    if (optimize(model, env) == -1)
         return false;
-    if (write(model, "lpFileName.lp") == -1)
+    if (write(model, "lpFileName.lp", env) == -1)
         return false;
-    if (getIntAttr(model, &optimstatus) == -1)
+    if (getIntAttr(model, &optimstatus, env) == -1)
         return false;
-    if (getDblAttr(model, &objval) == -1)
+    if (getDblAttr(model, &objval, env) == -1)
         return false;
 
-    sol = (int *)calloc(*numOfVariables, sizeof(int));
+    sol = (double *)calloc(*numOfVariables, sizeof(double));
     if (sol == NULL) /* calloc failed */
     {
         printError(MemoryAllocFailed, NULL, 0, 0);
@@ -662,7 +737,7 @@ bool findSolution(Puzzle *puzzle, bool integer, int *numOfVariables, int *sol)
     return success;
 }
 
-void fillIntSolution(Puzzle *puzzle, int *sol, Mode mode)
+void fillIntSolution(Puzzle *puzzle, double *sol, Mode mode)
 {
     int i, j, k, index, cellSol;
     int blockNumOfCells = puzzle->blockNumOfCells;
@@ -687,14 +762,14 @@ void fillIntSolution(Puzzle *puzzle, int *sol, Mode mode)
     }
 }
 
-Move *fillThresholdSolution(Puzzle *puzzle, int *sol, float threshold)
+Move *fillThresholdSolution(Puzzle *puzzle, double *sol, double threshold)
 {
     Move *head = NULL;
     Move *m;
     int i, j, k, index;
-    float cellSol;
+    double cellSol;
     int blockNumOfCells = puzzle->blockNumOfCells;
-    float *scores = (float *)calloc(blockNumOfCells, sizeof(float));
+    double *scores = (double *)calloc(blockNumOfCells, sizeof(double));
     Cell *cell;
     for (i = 1; i < blockNumOfCells + 1; i++)
     {
