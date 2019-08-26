@@ -189,6 +189,7 @@ int getIntAttr(GRBmodel *model, int *optimstatus, GRBenv *env)
     }
     return 0;
 }
+
 /*
 int getDblAttr(GRBmodel *model, double *objval, GRBenv *env)
 {
@@ -201,6 +202,7 @@ int getDblAttr(GRBmodel *model, double *objval, GRBenv *env)
     return 0;
 }
 */
+
 /* run ILP and return if there is a solution or not */
 int ILPSolvable(Puzzle *puzzle)
 {
@@ -451,7 +453,7 @@ int randomCoefficient(int N)
 	return ((rand()%N)+1);
 }
 
-int updateVariables(Puzzle *puzzle, bool integer, GRBmodel model, GRBenv *env)
+int updateVariables(Puzzle *puzzle, bool integer, GRBmodel *model, GRBenv *env)
 {
     int i, j, k, cnt = 1;
     int blockNumOfCells = puzzle->blockNumOfCells;
