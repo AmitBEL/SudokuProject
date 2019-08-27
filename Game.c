@@ -519,6 +519,17 @@ void hint(int x, int y)
     else
     {
         value = ILPCellSolver(puzzle, x, y);
+        if (value == 0)
+        {
+            printf("Error: board is unsolvable\n");
+            return;
+        }
+        if (value == -1)
+        {
+            printf("Error: Gurobi failed\n");
+            return;
+        }
+
         printf("Hint: set cell <%d,%d> to %d\n", x, y, value);
     }
     return;
