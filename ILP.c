@@ -560,6 +560,13 @@ bool findSolution(Puzzle *puzzle, bool isILP, int *numOfVariables, double *sol)
 		return -1;
 	}
 
+	/* Write model to 'mip1.lp' - this is not necessary but very helpful */
+	error = GRBwrite(model, "mip1.lp");
+	if (error) {
+		printf("ERROR %d GRBwrite(): %s\n", error, GRBgeterrormsg(env));
+		return -1;
+	}
+
 	return true;
 }
 
