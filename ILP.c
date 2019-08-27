@@ -492,10 +492,11 @@ bool findSolution(Puzzle *puzzle, bool isILP, int *numOfVariables, double *sol)
     GRBmodel *model = NULL;
     GRBmodel **modelPtr = &model;
     int error=0;
+    int optimstatus=0;
+    /* if statement added to avoid unused error (pedantic-error) */
     if (puzzle==NULL && isILP==true && numOfVariables==NULL && sol==NULL)
-    	return false;
-    /*int optimstatus;
-    bool success;
+        	return false;
+    /*bool success;
     double objval;*/
 
     /* Create environment - log file is mip1.log */
@@ -564,6 +565,13 @@ bool findSolution(Puzzle *puzzle, bool isILP, int *numOfVariables, double *sol)
 	error = GRBwrite(model, "mip1.lp");
 	if (error) {
 		printf("ERROR %d GRBwrite(): %s\n", error, GRBgeterrormsg(env));
+		return -1;
+	}
+
+	/* Get solution information */
+	error = GRBgetintattr(model, GRB_INT_ATTR_STATUS, &optimstatus);
+	if (error) {
+		printf("ERROR %d GRBgetintattr(): %s\n", error, GRBgeterrormsg(env));
 		return -1;
 	}
 
