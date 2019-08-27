@@ -262,7 +262,9 @@ int updateVariables(Puzzle *puzzle, bool isILP, GRBmodel **model, GRBenv **env)
 
 int addConstraint(GRBmodel *model, GRBenv *env, int numOfVars, int *ind, double *val, char *consName)
 {
-    int error = 0;
+	int error = 0;
+	if (numOfVars == 0)
+		return 0;
     error = GRBaddconstr(model, numOfVars, ind, val, GRB_EQUAL, 1.0, consName);
     if (error)
     {
