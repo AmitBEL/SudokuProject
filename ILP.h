@@ -23,7 +23,7 @@ Move* LPSolver(Puzzle *puzzle, double threshold);
  * return a list such that in index i there is the
  * probability that the value of cell is i+1 
  */
-double* LPCellValues(Puzzle *puzzle, double threshold, int x, int y, double *values);
+int LPCellValues(Puzzle *puzzle, int x, int y, double *values);
 
 int ILPCellSolver(Puzzle *puzzle, int x, int y);
 

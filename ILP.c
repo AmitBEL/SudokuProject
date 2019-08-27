@@ -135,7 +135,8 @@ void randomCoefficients(double *array, int N)
 
 	do
 	{
-		r=(rand()%(N-i))+1;
+		printf("i=%d\n", i);
+        r=(rand()%(N-i))+1;
 		if (!inArray(r,array,N))
 		{
 			array[i]=r;
@@ -213,9 +214,11 @@ int updateVariables(Puzzle *puzzle, bool isILP, GRBmodel **model, GRBenv **env)
         }
     }
     cnt--;
+    printf("E");
     if (isILP)
     {
-    	for(i=0; i<cnt; i++)
+    	printf("F");
+        for(i=0; i<cnt; i++)
     	{
     		obj[i] = 1.0;
     		vtype[i] = GRB_BINARY;
@@ -223,18 +226,21 @@ int updateVariables(Puzzle *puzzle, bool isILP, GRBmodel **model, GRBenv **env)
     }
     else
     {
-    	for(i=0; i<cnt; i++)
+    	printf("G");
+        for(i=0; i<cnt; i++)
     	{
     		vtype[i] = GRB_CONTINUOUS;
     	}
-    	randomCoefficients(obj, cnt);
+    	printf("before randomCoefficients\n");
+        randomCoefficients(obj, cnt);
+        printf("after randomCoefficients\n");
     	for(i=0; i<cnt; i++)
 		{
 			printf("%f, ", obj[i]);
 		}
     	printf("\n");
     }
-    print("E");
+    print("H");
     printf("*model=%d, cnt=%d, 3rd=%d, 4th=NULL, 5th=NULL 6th=NULL, obj=%f, 8th=NULL, upperBound=%f, vtype=%c, 11th=NULL\n", (*model==NULL?0:1), cnt, 0, obj[cnt-1], (upperBoundPtr==NULL?0:*upperBoundPtr), vtype[cnt-1]);
     error = GRBaddvars(*model, cnt, 0, NULL, NULL, NULL, obj, NULL, upperBoundPtr, vtype, NULL);
 	if (error)
@@ -245,7 +251,7 @@ int updateVariables(Puzzle *puzzle, bool isILP, GRBmodel **model, GRBenv **env)
 		free(vtype);
 		return -1;
 	}
-    print("F");
+    print("I");
     if (setIntAttr(model, env) == -1)
     {
         free(values);
@@ -253,7 +259,7 @@ int updateVariables(Puzzle *puzzle, bool isILP, GRBmodel **model, GRBenv **env)
         free(vtype);
         return -1;
     }
-    print("G");
+    print("J");
     free(values);
     free(obj);
     free(vtype);
@@ -740,11 +746,35 @@ Move* LPSolver(Puzzle *puzzle, double threshold)
  * return a list such that in index i there is the
  * probability that the value of cell is i+1 
  */
-double* LPCellValues(Puzzle *puzzle, double threshold, int x, int y, double *values)
+int LPCellValues(Puzzle *puzzle, int x, int y, double *values)
 {
-    if(puzzle==NULL && threshold==0.0 && x==0 && y==0 && values==NULL)
-    	return values;
-    return NULL;
+    int numOfVariables = 0;
+	double *sol = NULL;
+	int success=0, k=0, index=0;
+	printf("in LPCellValues\n");
+    success = findSolution(puzzle, false, &numOfVariables, &sol);
+    printf("success=%d\n", success);
+    printf("numOfVariables=%d\n", numOfVariables);
+    printf("sol=%d\n", sol==NULL?0:1);
+	if (success == 1)
+	{
+		for (k=1; k<puzzle->blockNumOfCells+1; k++)
+        {
+            printf("k=%d\n", k);
+            printf("variables[%d][%d][%d]=%d\n", y-1, x-1, k-1, variables[y-1][x-1][k-1]);
+            if (variables[y-1][x-1][k-1] != 0)
+            {
+                index = variables[y-1][x-1][k-1] - 1;
+                printf("index=%d\n", index);
+                values[k-1] = sol[index];
+                printf("values[%d]=%f\n", k-1, values[k-1]);
+            }
+        }
+	}
+	if(sol!=NULL)
+		free(sol);
+	freeVariables(puzzle->blockNumOfCells);
+	return success;
 }
 
 int ILPCellSolver(Puzzle *puzzle, int x, int y)
