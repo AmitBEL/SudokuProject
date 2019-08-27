@@ -233,7 +233,7 @@ int updateVariables(Puzzle *puzzle, bool isILP, GRBmodel **model, GRBenv **env)
     	printf("\n");
     }
     print("E");
-    /*printf("*model=%d, cnt=%d, 3rd=%d, 4th=NULL, 5th=NULL 6th=NULL, obj=%f, 8th=NULL, upperBound=%f, vtype=%c, 11th=NULL\n", (*model==NULL?0:1), cnt, 0, obj[cnt-1], *upperBoundPtr, vtype[cnt-1]);*/
+    printf("*model=%d, cnt=%d, 3rd=%d, 4th=NULL, 5th=NULL 6th=NULL, obj=%f, 8th=NULL, upperBound=%f, vtype=%c, 11th=NULL\n", (*model==NULL?0:1), cnt, 0, obj[cnt-1], *upperBoundPtr, vtype[cnt-1]);
     error = GRBaddvars(*model, cnt, 0, NULL, NULL, NULL, obj, NULL, upperBoundPtr, vtype, NULL);
 	if (error)
 	{
@@ -298,6 +298,14 @@ bool findSolution(Puzzle *puzzle, bool isILP, int *numOfVariables, double *sol)
 	printf("dvir\n");
 	*numOfVariables = updateVariables(puzzle, isILP, modelPtr, envPtr);
 	printf("dvir\n");
+
+	/* update the model - to integrate new variables */
+
+	error = GRBupdatemodel(model);
+	if (error) {
+		printf("ERROR %d GRBupdatemodel(): %s\n", error, GRBgeterrormsg(env));
+		return false;
+	}
 
 	return true;
 }
