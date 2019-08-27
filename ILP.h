@@ -1,18 +1,12 @@
 #ifndef ILP_H_
 #define ILP_H_
 
-#include <stdbool.h>
 #include "Auxilary.h"
-#include "gurobi_c.h"
-
 
 /* run ILP and return if there is a solution or not */
-int ILPSolvable(Puzzle *puzzle);
+bool ILPSolvable(Puzzle *puzzle);
 
-/* run ILP and return cell <x,y> value */
-int ILPCellSolver(Puzzle *puzzle, int x, int y);
-
-/* run ILP and fill puzzle with the solution */
+/* run ILP and return a solution */
 Puzzle* ILPSolver(Puzzle *puzzle);
 
 /* 
@@ -23,12 +17,14 @@ Puzzle* ILPSolver(Puzzle *puzzle);
  * is randomly chosen according to the score as the probability.
  * fills only legal values
  */
-Move* LPSolver(Puzzle *puzzle, double threshold/*, Mode mode*/);
+Move* LPSolver(Puzzle *puzzle, double threshold);
 
 /* 
  * return a list such that in index i there is the
  * probability that the value of cell is i+1 
  */
 double* LPCellValues(Puzzle *puzzle, double threshold, int x, int y, double *values);
+
+int ILPCellSolver(Puzzle *puzzle, int x, int y);
 
 #endif

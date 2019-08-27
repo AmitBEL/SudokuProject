@@ -59,7 +59,8 @@ int nextCellRow(int col, int row, int blockNumOfCells)
 int backtrack(Puzzle *puzzle)
 {
 	int c, col=0, row=0, cnt=0;
-	Cell *cell;
+	Cell dummyCell={0,0,0};
+	Cell *cell=&dummyCell;
 	bool success=true, found=false, end = false;
 	Stack *stk = (Stack*)calloc(1, sizeof(Stack));
 	Move *dummyMove;
