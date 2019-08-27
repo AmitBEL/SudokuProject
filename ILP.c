@@ -553,6 +553,13 @@ bool findSolution(Puzzle *puzzle, bool isILP, int *numOfVariables, double *sol)
 	if (addBlocksConstraints(puzzle, model, env) == -1)
 		return false;
 
+	/* Optimize model - need to call this before calculation */
+	error = GRBoptimize(model);
+	if (error) {
+		printf("ERROR %d GRBoptimize(): %s\n", error, GRBgeterrormsg(env));
+		return -1;
+	}
+
 	return true;
 }
 
