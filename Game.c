@@ -469,18 +469,26 @@ bool isErroneous() {
 /* check if the board is solvable */
 bool validate(bool printResult)
 {
+	int success = 0;
 	print("in validate");
-    if (ILPSolvable(puzzle))
+	success = ILPSolvable(puzzle);
+    if (success == 1)
     {
     	if (printResult)
     		printf("Validation passed: board is solvable\n");
         return true;
     }
-    else
+    else if (success == 0)
     {
     	if (printResult)
     		printf("Validation failed: board is unsolvable\n");
         return false;
+    }
+    else
+    {
+    	if (printResult)
+			printf("Validation failed: Gurobi failed\n");
+		return false;
     }
 }
 
@@ -572,21 +580,6 @@ bool isCellEmpty(int col, int row)
 	return ((puzzle->board[row][col]).value==0 ? true : false);
 }
 
-/* side function - delete before submission */
-void printCustomBoard(Cell** board, int limit1, int limit2)
-{
-	int i,j;
-	printf("\nfill (%d,%d):\n", limit1, limit2);
-	for (i=0; i<limit1; i++)
-	{
-		for (j=0; j<limit2; j++)
-		{
-			printf("%d ", board[i][j].value);
-		}
-		printf("\n");
-	}
-	printf("\n");
-}
  /* fill obvious cell values */
 Move* autoFill(Mode mode)
 {
