@@ -495,7 +495,7 @@ int addBlocksConstraints(Puzzle *puzzle, GRBmodel *model, GRBenv *env)
     return 0;
 }
 
-int findSolution(Puzzle *puzzle, bool isILP, int *numOfVariables, double *sol)
+int findSolution(Puzzle *puzzle, bool isILP, int *numOfVariables, double **solPtr)
 {
     GRBenv *env = NULL;
     GRBenv **envPtr=&env;
@@ -507,7 +507,7 @@ int findSolution(Puzzle *puzzle, bool isILP, int *numOfVariables, double *sol)
     double objval=0;
 
     /* if statement added to avoid unused error (pedantic-error) */
-	if (puzzle==NULL && isILP==true && numOfVariables==NULL && sol==NULL)
+	if (puzzle==NULL && isILP==true && numOfVariables==NULL && *solPtr==NULL)
 		return 0;
 
     /* Create environment - log file is mip1.log */
@@ -541,8 +541,8 @@ int findSolution(Puzzle *puzzle, bool isILP, int *numOfVariables, double *sol)
 	*numOfVariables = updateVariables(puzzle, isILP, modelPtr, envPtr);
 	print("2");
 
-	sol = (double *)calloc(*numOfVariables, sizeof(double));
-	if (sol == NULL) /* calloc failed */
+	*solPtr = (double *)calloc(*numOfVariables, sizeof(double));
+	if (*solPtr == NULL) /* calloc failed */
 	{
 		printError(MemoryAllocFailed, NULL, 0, 0);
 		exit(0);
@@ -637,12 +637,14 @@ int findSolution(Puzzle *puzzle, bool isILP, int *numOfVariables, double *sol)
 	print("beginning of if (success)");
 	/* get the solution - the assignment to each variable */
 	/* 3-- number of variables, the size of "sol" should match */
-	error = GRBgetdblattrarray(model, GRB_DBL_ATTR_X, 0, *numOfVariables, sol);
+	error = GRBgetdblattrarray(model, GRB_DBL_ATTR_X, 0, *numOfVariables, *solPtr);
 	if (error) {
 		printf("ERROR %d GRBgetdblattrarray(): %s\n", error, GRBgeterrormsg(env));
 		success = -1;
 		goto END;
 	}
+    printf("sol=%d\n", *solPtr==NULL?0:1);
+    printf("sol[0]=%f\n", *solPtr[0]);
 	print("end of if (success)");
 
 	print("12");
@@ -665,7 +667,7 @@ int ILPSolvable(Puzzle *puzzle)
 	double *sol = NULL;
 	int success = 0;
 	print("in ILPSolvable");
-	success = findSolution(puzzle, true, &numOfVariables, sol);
+	success = findSolution(puzzle, true, &numOfVariables, &sol);
 	print("after findSolution");
 	if (sol!=NULL)
 		free(sol);
@@ -706,7 +708,7 @@ Puzzle* ILPSolver(Puzzle *puzzle)
 	int numOfVariables /*, value=0, index, k*/;
 	double *sol = NULL;
 	int success;
-	success = findSolution(puzzle, true, &numOfVariables, sol);
+	success = findSolution(puzzle, true, &numOfVariables, &sol);
 	if (success == 1)
 	{
 		fillIntSolution(puzzle, sol, Edit);
@@ -747,7 +749,39 @@ double* LPCellValues(Puzzle *puzzle, double threshold, int x, int y, double *val
 
 int ILPCellSolver(Puzzle *puzzle, int x, int y)
 {
-	if (puzzle==NULL && x==0 && y==0)
-		return 0;
-	return 0;
+	int numOfVariables = 0;
+	double *sol = NULL, isSol=0.0;
+	int success=0, k=0, index=0, cellSol=0;
+	success = findSolution(puzzle, true, &numOfVariables, &sol);
+    printf("success=%d\n", success);
+    printf("numOfVariables=%d\n", numOfVariables);
+    printf("sol=%d\n", sol==NULL?0:1);
+	if (success == 1)
+	{
+		for (k=1; k<puzzle->blockNumOfCells+1; k++)
+        {
+            printf("k=%d\n", k);
+            printf("variables[%d][%d][%d]=%d\n", y-1, x-1, k-1, variables[y-1][x-1][k-1]);
+            if (variables[y-1][x-1][k-1] != 0)
+            {
+                index = variables[y-1][x-1][k-1] - 1;
+                printf("index=%d\n", index);
+                isSol = sol[index];
+                printf("isSol=%f\n", isSol);
+                if (isSol == 1.0)
+                {
+                    cellSol = k;
+                    break;
+                }
+            }
+        }
+	}
+    else
+    {
+        cellSol = success;
+    }
+	if(sol!=NULL)
+		free(sol);
+	freeVariables(puzzle->blockNumOfCells);
+	return cellSol;
 }
