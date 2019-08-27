@@ -540,7 +540,7 @@ void guessHint(int x, int y)
 {
     Cell *cell;
     double *values;
-    int i;
+    int i, success;
     cell = getCell(puzzle, x, y);
     if (cell->fixed)
     {
@@ -554,7 +554,20 @@ void guessHint(int x, int y)
     else
     {
         values = (double *)calloc(puzzle->blockNumOfCells, sizeof(double));
-        values = LPCellValues(puzzle, 0.0, x, y, values);
+        success = LPCellValues(puzzle, x, y, values);
+        if (success == 0)
+        {
+            printf("Error: board is unsolvable\n");
+            free(values);
+            return;
+        }
+        if (success == -1)
+        {
+            printf("Error: Gurobi failed\n");
+            free(values);
+            return;
+        }
+
         printf("Hint: cell <%d,%d> legal values are\n", x, y);
         for (i = 0; i < puzzle->blockNumOfCells; i++)
         {
