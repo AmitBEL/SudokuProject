@@ -4,6 +4,8 @@
 #include "ErrorHandler.h"
 #include "DoublyLinkedList.h"
 
+#define print(x) printf(x);printf("\n")
+
 typedef enum Mode {Init, Edit, Solve} Mode;
 
 typedef struct Cell {

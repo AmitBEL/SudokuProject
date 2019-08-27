@@ -95,7 +95,8 @@ void setFillBoard(int x, int y, int newValue) {
 
 /* fill all board according to file fp */
 bool fillBoard(FILE* fp, Mode mode) {
-	int i, j, N=getBlockNumOfCells(), newValue;
+	/* tryScanDot added to avoid unused return parameter of fscanf */
+	int i, j, N=getBlockNumOfCells(), newValue, tryScanDot=1;
 	int **board=(int**)calloc(N, sizeof(int*));
 	char ch;
 	Cell *cell;
@@ -151,14 +152,16 @@ bool fillBoard(FILE* fp, Mode mode) {
 				else /* mode==Edit */
 				{
 					setFillBoard(j+1, i+1, newValue);
-					fscanf(fp, "%c", &ch);
+					tryScanDot = fscanf(fp, "%c", &ch);
 				}
 
 			}
 		}
 	}
 
-
+	/* added to avoid unused parameter error */
+	if (mode==Edit && tryScanDot==1)
+		mode=Edit;
 
 	if (mode==Solve)
 	{
@@ -191,7 +194,7 @@ bool fillBoard(FILE* fp, Mode mode) {
  */
 bool load(char* filepath, Mode origMode, Mode mode) {
 	FILE* fp;
-	int i,j,m,n, bkpBlockNumRow, bkpBlockNumCol;
+	int i,j,m,n, bkpBlockNumRow=0, bkpBlockNumCol=0;
 	Cell* cell;
 	Move *origBoard=NULL, *current;
 
@@ -466,6 +469,7 @@ bool isErroneous() {
 /* check if the board is solvable */
 bool validate(bool printResult)
 {
+	print("in validate");
     if (ILPSolvable(puzzle))
     {
     	if (printResult)
@@ -531,7 +535,7 @@ void guessHint(int x, int y)
     else
     {
         values = (double *)calloc(puzzle->blockNumOfCells, sizeof(double));
-        values = LPCellValues(puzzle, 0, x, y, values);
+        values = LPCellValues(puzzle, 0.0, x, y, values);
         printf("Hint: cell <%d,%d> legal values are\n", x, y);
         for (i = 0; i < puzzle->blockNumOfCells; i++)
         {
