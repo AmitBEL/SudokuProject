@@ -46,4 +46,6 @@ void updateColCollisions(Puzzle *puzzle, int x, int y, int newValue);
 
 void updateBlockCollisions(Puzzle *puzzle, int x, int y, int newValue);
 
+void printCustomBoard(Cell** board, int limit1, int limit2);
+
 #endif

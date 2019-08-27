@@ -103,6 +103,8 @@ int setIntAttr(GRBmodel **model, GRBenv **env)
 void freeVariables(int blockNumOfCells)
 {
     int i, j /*, k*/;
+    if (variables==NULL)
+    	return;
     for (i = 0; i < blockNumOfCells; i++)
     {
         for (j = 0; j < blockNumOfCells; j++)
@@ -148,7 +150,7 @@ int updateVariables(Puzzle *puzzle, bool isILP, GRBmodel **model, GRBenv **env)
     int i=0, j=0, k=0, cnt = 1, error = 0;
     int blockNumOfCells = puzzle->blockNumOfCells;
     double *obj=NULL, upperBound=1.0; /* obj is coefficients array */
-    double *upperBoundPtr=&upperBound;
+    double *upperBoundPtr = (isILP ? NULL : &upperBound);
     int *values=NULL; /* array of legal values of cell */
     char *vtype=NULL; /* binary/continuous */
     Cell *cell=NULL;
@@ -233,7 +235,7 @@ int updateVariables(Puzzle *puzzle, bool isILP, GRBmodel **model, GRBenv **env)
     	printf("\n");
     }
     print("E");
-    printf("*model=%d, cnt=%d, 3rd=%d, 4th=NULL, 5th=NULL 6th=NULL, obj=%f, 8th=NULL, upperBound=%f, vtype=%c, 11th=NULL\n", (*model==NULL?0:1), cnt, 0, obj[cnt-1], *upperBoundPtr, vtype[cnt-1]);
+    printf("*model=%d, cnt=%d, 3rd=%d, 4th=NULL, 5th=NULL 6th=NULL, obj=%f, 8th=NULL, upperBound=%f, vtype=%c, 11th=NULL\n", (*model==NULL?0:1), cnt, 0, obj[cnt-1], (upperBoundPtr==NULL?0:*upperBoundPtr), vtype[cnt-1]);
     error = GRBaddvars(*model, cnt, 0, NULL, NULL, NULL, obj, NULL, upperBoundPtr, vtype, NULL);
 	if (error)
 	{
@@ -261,18 +263,24 @@ int updateVariables(Puzzle *puzzle, bool isILP, GRBmodel **model, GRBenv **env)
 int addConstraint(GRBmodel *model, GRBenv *env, int numOfVars, int *ind, double *val, char *consName)
 {
     int error = 0;
-    error = GRBaddconstr(model, numOfVars, ind, val, GRB_LESS_EQUAL, 1.0, consName);
+    error = GRBaddconstr(model, numOfVars, ind, val, GRB_EQUAL, 1.0, consName);
     if (error)
     {
         printf("ERROR %d 1st GRBaddconstr(): %s\n", error, GRBgeterrormsg(env));
         return -1;
     }
-    error = GRBaddconstr(model, numOfVars, ind, val, GRB_GREATER_EQUAL, 1.0, consName);
+    /*error = GRBaddconstr(model, numOfVars, ind, val, GRB_LESS_EQUAL, 1.0, consName);
 	if (error)
 	{
 		printf("ERROR %d 1st GRBaddconstr(): %s\n", error, GRBgeterrormsg(env));
 		return -1;
 	}
+    error = GRBaddconstr(model, numOfVars, ind, val, GRB_GREATER_EQUAL, 1.0, consName);
+	if (error)
+	{
+		printf("ERROR %d 1st GRBaddconstr(): %s\n", error, GRBgeterrormsg(env));
+		return -1;
+	}*/
     return 0;
 }
 
@@ -485,7 +493,7 @@ int addBlocksConstraints(Puzzle *puzzle, GRBmodel *model, GRBenv *env)
     return 0;
 }
 
-bool findSolution(Puzzle *puzzle, bool isILP, int *numOfVariables, double *sol)
+int findSolution(Puzzle *puzzle, bool isILP, int *numOfVariables, double *sol)
 {
     GRBenv *env = NULL;
     GRBenv **envPtr=&env;
@@ -493,30 +501,34 @@ bool findSolution(Puzzle *puzzle, bool isILP, int *numOfVariables, double *sol)
     GRBmodel **modelPtr = &model;
     int error=0;
     int optimstatus=0;
+    int success=0;
+    double objval=0;
+
     /* if statement added to avoid unused error (pedantic-error) */
-    if (puzzle==NULL && isILP==true && numOfVariables==NULL && sol==NULL)
-        	return false;
-    /*bool success;
-    double objval;*/
+	if (puzzle==NULL && isILP==true && numOfVariables==NULL && sol==NULL)
+		return 0;
 
     /* Create environment - log file is mip1.log */
 	error = GRBloadenv(&env, "mip1.log");
 	if (error) {
 		printf("ERROR %d GRBloadenv(): %s\n", error, GRBgeterrormsg(env));
-		return false;
+		success = -1;
+		goto END;
 	}
 
 	error = GRBsetintparam(env, GRB_INT_PAR_LOGTOCONSOLE, 0);
 	if (error) {
 		printf("ERROR %d GRBsetintparam(): %s\n", error, GRBgeterrormsg(env));
-		return false;
+		success = -1;
+		goto END;
 	}
 
 	/* Create an empty model named "mip1" */
 	error = GRBnewmodel(env, &model, "mip1", 0, NULL, NULL, NULL, NULL, NULL);
 	if (error) {
 		printf("ERROR %d GRBnewmodel(): %s\n", error, GRBgeterrormsg(env));
-		return false;
+		success = -1;
+		goto END;
 	}
 
 	/* Add variables */
@@ -538,66 +550,169 @@ bool findSolution(Puzzle *puzzle, bool isILP, int *numOfVariables, double *sol)
 	error = GRBupdatemodel(model);
 	if (error) {
 		printf("ERROR %d GRBupdatemodel(): %s\n", error, GRBgeterrormsg(env));
-		return false;
+		success = -1;
+		goto END;
 	}
 	print("4");
 	/* add constraints to model */
 	if (addCellsConstraints(puzzle, model, env) == -1)
-		return false;
+	{
+		success = -1;
+		goto END;
+	}
 	print("5");
 	if (addRowsConstraints(puzzle, model, env) == -1)
-		return false;
+	{
+		success = -1;
+		goto END;
+	}
 	print("6");
 	if (addColsConstraints(puzzle, model, env) == -1)
-		return false;
+	{
+		success = -1;
+		goto END;
+	}
 	print("7");
 	if (addBlocksConstraints(puzzle, model, env) == -1)
-		return false;
-
+	{
+		success = -1;
+		goto END;
+	}
+	print("8");
 	/* Optimize model - need to call this before calculation */
 	error = GRBoptimize(model);
 	if (error) {
 		printf("ERROR %d GRBoptimize(): %s\n", error, GRBgeterrormsg(env));
-		return -1;
+		success = -1;
+		goto END;
 	}
-
+	print("9");
 	/* Write model to 'mip1.lp' - this is not necessary but very helpful */
 	error = GRBwrite(model, "mip1.lp");
 	if (error) {
 		printf("ERROR %d GRBwrite(): %s\n", error, GRBgeterrormsg(env));
-		return -1;
+		success = -1;
+		goto END;
 	}
-
+	print("10");
 	/* Get solution information */
 	error = GRBgetintattr(model, GRB_INT_ATTR_STATUS, &optimstatus);
 	if (error) {
 		printf("ERROR %d GRBgetintattr(): %s\n", error, GRBgeterrormsg(env));
-		return -1;
+		success = -1;
+		goto END;
+	}
+	print("11");
+	/* get the objective -- the optimal result of the function */
+	/* not necessary but may be harmful to gurobi using */
+	/*error = GRBgetdblattr(model, GRB_DBL_ATTR_OBJVAL, &objval);
+	if (error) {
+		printf("ERROR %d GRBgetdblattr(): %s\n", error, GRBgeterrormsg(env));
+		return false;
+	}*/
+
+	/* print results */
+	printf("\nOptimization complete\n");
+
+	/* solution found */
+	if (optimstatus == GRB_OPTIMAL) {
+		success = 1;
+		printf("Optimal objective: %.4e\n", objval);
+	}
+	/* no solution found */
+	else if (optimstatus == GRB_INF_OR_UNBD) {
+		success = 0;
+		printf("Model is infeasible or unbounded\n");
+		goto END;
+	}
+	/* error or calculation stopped */
+	else {
+		printf("Optimization was stopped early\n");
+		success = -1;
+		goto END;
 	}
 
-	return true;
+	print("beginning of if (success)");
+	/* get the solution - the assignment to each variable */
+	/* 3-- number of variables, the size of "sol" should match */
+	error = GRBgetdblattrarray(model, GRB_DBL_ATTR_X, 0, *numOfVariables, sol);
+	if (error) {
+		printf("ERROR %d GRBgetdblattrarray(): %s\n", error, GRBgeterrormsg(env));
+		success = -1;
+		goto END;
+	}
+	print("end of if (success)");
+
+	print("12");
+
+	/* IMPORTANT !!! - Free model and environment */
+
+	END:
+	if (model!=NULL)
+		GRBfreemodel(model);
+	if (env!=NULL)
+		GRBfreeenv(env);
+
+	return success;
 }
 
 /* run ILP and return if there is a solution or not */
-bool ILPSolvable(Puzzle *puzzle)
+int ILPSolvable(Puzzle *puzzle)
 {
 	int numOfVariables;
 	double *sol = NULL;
-	bool success;
+	int success = 0;
 	print("in ILPSolvable");
 	success = findSolution(puzzle, true, &numOfVariables, sol);
 	print("after findSolution");
 	if (sol!=NULL)
 		free(sol);
-	/*freeVariables(puzzle->blockNumOfCells);*/
+	freeVariables(puzzle->blockNumOfCells);
 	print("after freeVariables");
 	return success;
+}
+
+void fillIntSolution(Puzzle *puzzle, double *sol, Mode mode)
+{
+	Move *dummyMove=NULL;
+    int i, j, k, index, cellSol;
+    int blockNumOfCells = puzzle->blockNumOfCells;
+    for (i = 1; i < blockNumOfCells + 1; i++)
+    {
+        for (j = 1; j < blockNumOfCells + 1; j++)
+        {
+            for (k = 1; k < blockNumOfCells + 1; k++)
+            {
+                index = variables[i - 1][j - 1][k - 1];
+                if (index)
+                {
+                    cellSol = sol[index - 1];
+                    if (cellSol)
+                    {
+                    	dummyMove = setCell(puzzle, i, j, k, mode);
+                    	deleteList(dummyMove);
+                    }
+                }
+            }
+        }
+    }
 }
 
 /* run ILP and return a solution */
 Puzzle* ILPSolver(Puzzle *puzzle)
 {
-    return puzzle;
+	int numOfVariables /*, value=0, index, k*/;
+	double *sol = NULL;
+	int success;
+	success = findSolution(puzzle, true, &numOfVariables, sol);
+	if (success == 1)
+	{
+		fillIntSolution(puzzle, sol, Edit);
+	}
+	if(sol!=NULL)
+		free(sol);
+	freeVariables(puzzle->blockNumOfCells);
+	return puzzle;
 }
 
 /* 

@@ -298,3 +298,19 @@ void updateBlockCollisions(Puzzle *puzzle, int x, int y, int newValue)
 		}
 	}
 }
+
+/* side function - delete before submission */
+void printCustomBoard(Cell** board, int limit1, int limit2)
+{
+	int i,j;
+	printf("\nfill (%d,%d):\n", limit1, limit2);
+	for (i=0; i<limit1; i++)
+	{
+		for (j=0; j<limit2; j++)
+		{
+			printf("%d ", board[i][j].value);
+		}
+		printf("\n");
+	}
+	printf("\n");
+}

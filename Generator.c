@@ -52,18 +52,31 @@ void fillRandPossibleValue(Puzzle *puzzle, int col, int row)
 	int randValue, i, counter=0;
 	Move *dummyMove;
 
+	printf("legal values for <%d,%d>\n", col+1, row+1);
+
 	values=numOfCellSol(puzzle, col, row, values);
+
+	for (i=0;i<puzzle->blockNumOfCells+1;i++)
+	{
+		printf("%d ", i);
+	}
+	printf("\n");
+	for (i=0;i<puzzle->blockNumOfCells+1;i++)
+	{
+		printf("%d ", values[i]);
+	}
+	printf("\n");
 
 	if (values[0]>0)
 	{
-		randValue=rand()%values[0]; /* choose random index from indexes of legal values */
+		randValue=(rand()%(values[0])); /* choose random index from indexes of legal values */
 		for (i=1;i<puzzle->blockNumOfCells+1;i++)
 		{
 			if (values[i]!=0)
 			{
 				if (counter==randValue)
 				{
-					dummyMove=setCell(puzzle, col+1, row+1, values[i], Edit);
+					dummyMove=setCell(puzzle, col+1, row+1, i, Edit);
 					deleteList(dummyMove);
 					return;
 				}
@@ -77,7 +90,7 @@ void fillRandPossibleValue(Puzzle *puzzle, int col, int row)
  * generate puzzle from given puzzle
  */
 Move* generate(Puzzle *puzzle, int x, int y){
-	int i=0, j=0, N=puzzle->blockNumOfCells, col, row;
+	int i=0, j=0, N=puzzle->blockNumOfCells, col, row, r, s;
 	Cell *cell;
 	Move *moves=NULL, *dummyMove;
 	bool generateSucceeded=false, xEmptyCellsFilled=true;
@@ -102,18 +115,34 @@ Move* generate(Puzzle *puzzle, int x, int y){
 
 	copyBoard(puzzle, backupBoard);
 
+	for (r=0; r<puzzle->blockNumOfCells; r++)
+	{
+		for (s=0; s<puzzle->blockNumOfCells; s++)
+		{
+			printf("%d ", backupBoard[r][s]);
+		}
+		printf("\n");
+	}
+	printf("\n");
+
 	/* try 1000 times to generate a board */
 	for (i=0;i<1000;i++)
 	{
+		printf("\n\n\n\n\n\n\n\ntry #%d:\n\n\n", i);
+		printCustomBoard(puzzle->board, puzzle->blockNumOfCells, puzzle->blockNumOfCells);
 		/* choose x empty cells randomly and fill them with legal values */
+		j=0;
 		while (j<x)
 		{
 			col=rand()%N;
 			row=rand()%N;
+			printf("j=%d, col=%d, row=%d\n", j, col, row);
 			cell=getCell(puzzle, col+1, row+1);
 			if (cell->value==0)
 			{
+				print("before fillRandPossibleValue\n");
 				fillRandPossibleValue(puzzle, col, row);
+				print("after fillRandPossibleValue\n");
 				if (cell->value==0) /* legal value not exists */
 				{
 					/*changeBoard(puzzle, backupBoard);  init the puzzle to backupBoard */
@@ -124,11 +153,16 @@ Move* generate(Puzzle *puzzle, int x, int y){
 			}
 		}
 
+		printCustomBoard(puzzle->board, puzzle->blockNumOfCells, puzzle->blockNumOfCells);
+
 		if (xEmptyCellsFilled)
 		{
+			printf("\n\nfound %d empty cells\n\n", x);
 			/* solve the board with ILP */
 			puzzle = ILPSolver(puzzle);
 		}
+
+		printCustomBoard(puzzle->board, puzzle->blockNumOfCells, puzzle->blockNumOfCells);
 
 		/* if x empty cells not filled or there is no solution, at least 1 empty cell exists */
 		if (puzzle->numOfEmptyCells==0/* && xEmptyCellsFilled*/)
@@ -147,6 +181,8 @@ Move* generate(Puzzle *puzzle, int x, int y){
 					j++;
 				}
 			}
+			printf("only %d cells with values", y);
+			printCustomBoard(puzzle->board, puzzle->blockNumOfCells, puzzle->blockNumOfCells);
 			generateSucceeded=true;
 		}
 		else
@@ -156,9 +192,11 @@ Move* generate(Puzzle *puzzle, int x, int y){
 		}
 	}
 
+	print("after all iterations");
 	/* save the cells that changed in moves list */
 	if (generateSucceeded)
 	{
+		print("succeeded");
 		for (i=0;i<puzzle->blockNumOfCells;i++)
 		{
 			for (j=0;j<puzzle->blockNumOfCells;j++)

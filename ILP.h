@@ -4,7 +4,7 @@
 #include "Auxilary.h"
 
 /* run ILP and return if there is a solution or not */
-bool ILPSolvable(Puzzle *puzzle);
+int ILPSolvable(Puzzle *puzzle);
 
 /* run ILP and return a solution */
 Puzzle* ILPSolver(Puzzle *puzzle);
