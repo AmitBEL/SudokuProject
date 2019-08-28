@@ -445,7 +445,8 @@ When several errors exist for the same command, follow this order:
 							addStep(moves); /* addStep removes the steps from current move to the end and then updates current.nextStep to moves */
 						}
 						printBoard(mark_errors);
-						return mode;
+		
+						return isBoardCompleted(mode);
 					}
 					else
 					{
