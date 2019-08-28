@@ -116,18 +116,16 @@ void freeVariables(int blockNumOfCells)
     free(variables);
 }
 
-bool inArray(/*int val, double *array, int N*/)
+bool inArray(int val, double *array, int N)
 {
-	/*int i=0;
+	int i=0;
 
 	for (i=0;i<N;i++)
 	{
 		if (array[i]==val)
 			return true;
 	}
-
-	return false;*/
-    return false;
+	return false;
 }
 
 void randomCoefficients(double *array, int N)
@@ -137,8 +135,8 @@ void randomCoefficients(double *array, int N)
 	do
 	{
 		printf("i=%d\n", i);
-        r=(rand()%(10))+1;
-		if (!inArray(/*r,array,N*/))
+        r=(rand()%(N))+1;
+		if (!inArray(r,array,N))
 		{
 			array[i]=r;
 			i++;
@@ -151,8 +149,8 @@ int updateVariables(Puzzle *puzzle, bool isILP, GRBmodel **model, GRBenv **env)
 {
     int i=0, j=0, k=0, cnt = 1, error = 0, row=0, col=0;
     int blockNumOfCells = puzzle->blockNumOfCells;
-    double *obj=NULL, upperBound=1.0; /* obj is coefficients array */
-    double *upperBoundPtr = (isILP ? NULL : &upperBound);
+    double *obj=NULL; /* obj is coefficients array */
+    double *upperBounds = NULL /*= (isILP ? NULL : &upperBound)*/;
     int *values=NULL; /* array of legal values of cell */
     char *vtype=NULL; /* binary/continuous */
     Cell *cell=NULL;
@@ -241,29 +239,44 @@ int updateVariables(Puzzle *puzzle, bool isILP, GRBmodel **model, GRBenv **env)
     else
     {
     	printf("G");
+        upperBounds = (double*)calloc(maxNumOfVars, sizeof(double));
+        if (upperBounds==NULL) /* calloc failed */
+        {
+            printError(MemoryAllocFailed, NULL, 0, 0);
+            exit(0);
+        }
+
         for(i=0; i<cnt; i++)
     	{
-    		vtype[i] = GRB_CONTINUOUS;
+    		/* obj[i] = 1.0;   temp coef - suppose to be random */
+            vtype[i] = GRB_CONTINUOUS;
+            upperBounds[i] = 1.0;
     	}
     	printf("before randomCoefficients\n");
         randomCoefficients(obj, cnt);
         printf("after randomCoefficients\n");
-    	for(i=0; i<cnt; i++)
+    	/*for(i=0; i<cnt; i++)
 		{
 			printf("%f, ", obj[i]);
 		}
-    	printf("\n");
+    	printf("\n");*/
     }
     print("H");
     
-    printf("*model=%d, cnt=%d, 3rd=%d, 4th=NULL, 5th=NULL 6th=NULL, obj=%f, 8th=NULL, upperBound=%f, vtype=%c, 11th=NULL\n", (*model==NULL?0:1), cnt, 0, obj[cnt-1], (upperBoundPtr==NULL?0:*upperBoundPtr), vtype[cnt-1]);
-    error = GRBaddvars(*model, cnt, 0, NULL, NULL, NULL, obj, NULL, upperBoundPtr, vtype, varsNames);
+    /*printf("*model=%d, cnt=%d, 3rd=%d, 4th=NULL, 5th=NULL 6th=NULL, obj=%f, 8th=NULL, upperBound=%f, vtype=%c, 11th=NULL\n", (*model==NULL?0:1), cnt, 0, obj[cnt-1], (upperBoundPtr==NULL?0:*upperBoundPtr), vtype[cnt-1]);*/  
+    /*printf("upper=%f, vtype[cnt-1]=%c\n", *upperBoundPtr, vtype[cnt-1]);*/
+    error = GRBaddvars(*model, cnt, 0, NULL, NULL, NULL, obj, NULL, upperBounds, vtype, varsNames);
 
     for (i=0; i<maxNumOfVars; i++)
     {
         free(varsNames[i]);
     }
     free(varsNames);
+
+    if (upperBounds!=NULL)
+    {
+        free(upperBounds);
+    }
 
 	if (error)
 	{
@@ -482,7 +495,7 @@ int addBlocksConstraints(Puzzle *puzzle, GRBmodel *model, GRBenv *env)
                 {
                     for (row = 1; row < blockNumOfRows + 1; row++)
                     {
-                        printf("[(%d*3)+(%d-1)][(%d*2)+(%d-1)][%d-1] = [%d][%d][%d]\n",m,row,n,col,k, (m*blockNumOfRows)+(row-1), (n*blockNumOfCols)+(col-1),k-1);
+                        /*printf("[(%d*3)+(%d-1)][(%d*2)+(%d-1)][%d-1] = [%d][%d][%d]\n",m,row,n,col,k, (m*blockNumOfRows)+(row-1), (n*blockNumOfCols)+(col-1),k-1);*/
                         index = variables[(m*blockNumOfRows)+(row-1)][(n*blockNumOfCols)+(col-1)][k-1];
                         if (index)
                         {
@@ -768,12 +781,12 @@ int LPCellValues(Puzzle *puzzle, int col, int row, double *values)
 		for (k=1; k<puzzle->blockNumOfCells+1; k++)
         {
             printf("k=%d\n", k);
-            printf("variables[%d][%d][%d]=%d\n", row-1, col-1, k-1, variables[row-1][col-1][k-1]);
-            if (variables[row-1][col-1][k-1] != 0)
+            index = variables[row-1][col-1][k-1];
+            printf("variables[%d][%d][%d]=%d\n", row-1, col-1, k-1, index);
+            if (index)
             {
-                index = variables[row-1][col-1][k-1] - 1;
                 printf("index=%d\n", index);
-                values[k-1] = sol[index];
+                values[k-1] = sol[index-1];
                 printf("values[%d]=%f\n", k-1, values[k-1]);
             }
         }
