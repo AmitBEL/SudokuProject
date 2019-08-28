@@ -745,6 +745,41 @@ Puzzle* ILPSolver(Puzzle *puzzle)
 	return puzzle;
 }
 
+Move* fillDblSolution(Puzzle *puzzle, double threshold, double *sol, Mode mode)
+{
+    Move *head = NULL;
+    Move *m = NULL;
+    int row, col, k, index;
+    double cellSol;
+    int blockNumOfCells = puzzle->blockNumOfCells;
+
+    if(head==NULL)
+    {
+        head = NULL;
+    }
+    for (row = 1; row < blockNumOfCells + 1; row++)
+    {
+        for (col = 1; col < blockNumOfCells + 1; col++)
+        {
+            for (k = 1; k < blockNumOfCells + 1; k++)
+            {
+                index = variables[row - 1][col - 1][k - 1];
+                if (index)
+                {
+                    cellSol = sol[index - 1];
+                    if (cellSol>=threshold)
+                    {
+                    	printf("cell <%d,%d> cellSol is %f\n", col, row, cellSol);
+                        m = setCell(puzzle, col, row, k, mode);
+                    	concat(&head, &m);
+                    }
+                }
+            }
+        }
+    }
+    return head;
+}
+
 /* 
  * run LP and return a new puzzle such that
  * all empty un-fixed cell values with a score
@@ -755,13 +790,20 @@ Puzzle* ILPSolver(Puzzle *puzzle)
  */
 Move* LPSolver(Puzzle *puzzle, double threshold)
 {
-    if (puzzle==NULL && threshold != 0)
-    {
-        return NULL;
-    }
-    return NULL;
+    int numOfVariables;
+	double *sol = NULL;
+	int success;
+    Move* head = NULL;
+	success = findSolution(puzzle, false, &numOfVariables, &sol);
+	if (success == 1)
+	{
+		head = fillDblSolution(puzzle, threshold, sol, Solve);
+	}
+	if(sol!=NULL)
+		free(sol);
+	freeVariables(puzzle->blockNumOfCells);
+	return head;
 }
-
 /* 
  * return a list such that in index i there is the
  * probability that the value of cell is i+1 
