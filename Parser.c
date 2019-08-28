@@ -439,13 +439,12 @@ When several errors exist for the same command, follow this order:
 				numOfSuccessfulScan = sscanf(param1, "%lf", &xDouble);
 				if (numOfSuccessfulScan == 1 && 0.0 <= xDouble && xDouble <= 1.0){
 					if (!isErroneous()){
-						moves = guess(xDouble/*, mode*/);
+						moves = guess(xDouble);
 						if (moves!=NULL){ /* could not guess any value */
 
 							addStep(moves); /* addStep removes the steps from current move to the end and then updates current.nextStep to moves */
 						}
 						printBoard(mark_errors);
-		
 						return isBoardCompleted(mode);
 					}
 					else

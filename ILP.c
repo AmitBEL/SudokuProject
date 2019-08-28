@@ -3,6 +3,63 @@
 
 int ***variables=NULL;
 
+/* fiil cell <x,y> by randomly choosing a value according to
+ * values[] which is the probability
+ * if none of the options is ligal don't fill it */
+Move *fillCellAccordingToProb(Puzzle *puzzle, int col, int row, double *valueVsScore)
+{
+	double sum=0, randVal=((rand()%10000)/10000.0);
+	int i=0, N=puzzle->blockNumOfCells;
+	Move *head=NULL;
+	bool isBoardErroneous=false;
+
+	do
+	{
+		isBoardErroneous=false;
+		/* sum the scores */
+		for (i=0;i<N;i++)
+		{
+			printf("i=%d, score=%f\n", i, valueVsScore[i]);
+			sum+=valueVsScore[i];
+		}
+		print("-");
+		if (sum==0)
+			return NULL;
+		printf("sum=%f, randVal=%f\n", sum, randVal);
+		print("-");
+		/* change the score of each cell to its relative probability */
+		for (i=0;i<N;i++)
+		{
+			valueVsScore[i]=(valueVsScore[i]/sum);
+			printf("i=%d, score=%f\n", i, valueVsScore[i]);
+		}
+
+		/* choose value randomly */
+		i=0;
+		sum=0;
+		while (i<N && sum<=randVal)
+		{
+			sum+=valueVsScore[i];
+			i++; /* when exit the loop, i is the random value */
+		}
+		printf("sum=%f, randVal=%f\n", sum, randVal);
+		printf("chosen value for cell <%d,%d> is %d\n", col, row, i);
+		/* if the chosen value turns the board to erroneous choose another value */
+		head = setCell(puzzle, col, row, i, Solve);
+		print("after setCell");
+		if (isBoardErr(puzzle))
+		{
+			isBoardErroneous = true;
+			deleteList(head);
+			head=NULL;
+			valueVsScore[i-1]=0;
+		}
+	}
+	while (isBoardErroneous);
+
+	return head;
+}
+
 int addVars(GRBmodel **model, GRBenv **env, int numOfVarsToAdd, double *obj, char *vtype)
 {
     int error = 0;
@@ -745,18 +802,26 @@ Puzzle* ILPSolver(Puzzle *puzzle)
 	return puzzle;
 }
 
-Move* fillDblSolution(Puzzle *puzzle, double threshold, double *sol, Mode mode)
+Move* fillDblSolution(Puzzle *puzzle, double threshold, double *sol)
 {
     Move *head = NULL;
     Move *m = NULL;
     int row, col, k, index;
     double cellSol;
     int blockNumOfCells = puzzle->blockNumOfCells;
-
+    double *scores = (double *)calloc(blockNumOfCells, sizeof(double));
+    if (scores==NULL)/* calloc failed */
+    {
+    	printError(MemoryAllocFailed, NULL, 0, 0);
+    	exit(0);
+    }
     if(head==NULL)
     {
         head = NULL;
     }
+
+    print("---1");
+
     for (row = 1; row < blockNumOfCells + 1; row++)
     {
         for (col = 1; col < blockNumOfCells + 1; col++)
@@ -769,14 +834,28 @@ Move* fillDblSolution(Puzzle *puzzle, double threshold, double *sol, Mode mode)
                     cellSol = sol[index - 1];
                     if (cellSol>=threshold)
                     {
-                    	printf("cell <%d,%d> cellSol is %f\n", col, row, cellSol);
-                        m = setCell(puzzle, col, row, k, mode);
-                    	concat(&head, &m);
+                    	scores[k-1] = cellSol;
+                    }
+                    else
+                    {
+                    	scores[k-1] = 0.0;
                     }
                 }
+                else
+                {
+                	scores[k-1] = 0.0;
+                }
             }
+            printf("before fillCellAccordingToProb cell <%d,%d>\n", col, row);
+        	m = fillCellAccordingToProb(puzzle, col, row, scores);
+        	printf("after fillCellAccordingToProb cell <%d,%d>\n", col, row);
+        	concat(&head, &m);
+        	print("after concat");
         }
     }
+    print("---2");
+    free(scores);
+    print("---3");
     return head;
 }
 
@@ -794,14 +873,21 @@ Move* LPSolver(Puzzle *puzzle, double threshold)
 	double *sol = NULL;
 	int success;
     Move* head = NULL;
+    print("a");
 	success = findSolution(puzzle, false, &numOfVariables, &sol);
+	print("b");
 	if (success == 1)
 	{
-		head = fillDblSolution(puzzle, threshold, sol, Solve);
+		print("c");
+		head = fillDblSolution(puzzle, threshold, sol);
+		print("d");
 	}
+	print("e");
 	if(sol!=NULL)
 		free(sol);
+	print("f");
 	freeVariables(puzzle->blockNumOfCells);
+	print("g");
 	return head;
 }
 /* 
