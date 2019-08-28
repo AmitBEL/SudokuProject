@@ -573,7 +573,7 @@ void guessHint(int x, int y)
         {
             if (values[i] > 0)
             {
-                printf("%d with score %f\n", i + 1, values[i]);
+                printf("      %d with score %f\n", i + 1, values[i]);
             }
         }
         free(values);
