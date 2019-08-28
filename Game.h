@@ -27,7 +27,7 @@ bool validate(bool printResult);
 
 bool isErroneous();
 
-Move* guess(double threshold/*, Mode mode*/);
+Move* guess(double threshold);
 
 bool save(char* filepath, Mode mode);
 

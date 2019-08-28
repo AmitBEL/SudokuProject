@@ -496,9 +496,9 @@ bool validate(bool printResult)
  * fill empty cells using LP
  * fill only legal values with score greater than threshold
  */
-Move* guess(double threshold/*, Mode mode*/)
+Move* guess(double threshold)
 {
-    return LPSolver(puzzle, threshold/*, mode*/);
+    return LPSolver(puzzle, threshold);
 }
 
 /* print hint to cell <x,y> */

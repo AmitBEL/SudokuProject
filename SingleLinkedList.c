@@ -45,19 +45,25 @@ void deleteList(Move *head) {
 
 /* concat 2 single-linked-lists */
 void concat(Move** head1, Move** head2) {
+	Move *current=*head1;
 	if (head1!=NULL && head2 != NULL) {
-		Move *current=*head1;
-		if (*head1==NULL && *head2!=NULL)
+		if (*head2!=NULL)
 		{
-			*head1=*head2;
-			return;
+			if (*head1==NULL)
+			{
+				*head1=*head2;
+				return;
+			}
+			else
+			{
+				while(current->next!=NULL) {
+					current = current->next;
+				}
+				current->next=*head2;
+			}
 		}
-		while(current->next!=NULL) {
-			current = current->next;
-		}
-		current->next=*head2;
 	}
-	else if (head1==NULL && head2!=NULL) {
+	else if ((head1==NULL) && (head2!=NULL)) {
 		head1=head2;
 	}
 }
