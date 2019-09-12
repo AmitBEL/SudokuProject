@@ -621,10 +621,10 @@ When several errors exist for the same command, follow this order:
 			if (param1 != NULL && param2 != NULL && param3 == NULL)
 			{
 				numOfSuccessfulScan = sscanf(param1, "%d", &x);
-				if (numOfSuccessfulScan == 1 && isNumInRange(x, 1, getNumOfCells()))
+				if (numOfSuccessfulScan == 1 && isNumInRange(x, 1, getBlockNumOfCells()))
 				{
 					numOfSuccessfulScan = sscanf(param2, "%d", &y);
-					if (numOfSuccessfulScan == 1 && isNumInRange(y, 1, getNumOfCells()))
+					if (numOfSuccessfulScan == 1 && isNumInRange(y, 1, getBlockNumOfCells()))
 					{
 						if (isErroneous())
 						{
@@ -641,13 +641,13 @@ When several errors exist for the same command, follow this order:
 					}
 					else
 					{
-						printError(ParamOutOfBounds, "2", 1, getNumOfCells());
+						printError(ParamOutOfBounds, "2", 1, getBlockNumOfCells());
 						return mode;
 					}
 				}
 				else
 				{
-					printError(ParamOutOfBounds, "1", 1, getNumOfCells());
+					printError(ParamOutOfBounds, "1", 1, getBlockNumOfCells());
 					return mode;
 				}
 			}
@@ -667,10 +667,10 @@ When several errors exist for the same command, follow this order:
 			if (param1 != NULL && param2 != NULL && param3 == NULL)
 			{
 				numOfSuccessfulScan = sscanf(param1, "%d", &x);
-				if (numOfSuccessfulScan == 1 && isNumInRange(x, 1, getNumOfCells()))
+				if (numOfSuccessfulScan == 1 && isNumInRange(x, 1, getBlockNumOfCells()))
 				{
 					numOfSuccessfulScan = sscanf(param2, "%d", &y);
-					if (numOfSuccessfulScan == 1 && isNumInRange(y, 1, getNumOfCells()))
+					if (numOfSuccessfulScan == 1 && isNumInRange(y, 1, getBlockNumOfCells()))
 					{
 						if (isErroneous())
 						{
@@ -687,13 +687,13 @@ When several errors exist for the same command, follow this order:
 					}
 					else
 					{
-						printError(ParamOutOfBounds, "2", 1, getNumOfCells());
+						printError(ParamOutOfBounds, "2", 1, getBlockNumOfCells());
 						return mode;
 					}
 				}
 				else
 				{
-					printError(ParamOutOfBounds, "1", 1, getNumOfCells());
+					printError(ParamOutOfBounds, "1", 1, getBlockNumOfCells());
 					return mode;
 				}
 			}
