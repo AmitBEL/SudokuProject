@@ -54,11 +54,12 @@ Move* setCell(Puzzle *puzzle, int x, int y, int z, Mode mode)
     cell = getCell(puzzle, x, y);
     if (mode == Solve && cell->fixed)
     {
-        printf("Error: cell is fixed\n");
+        printError(FixedCell, NULL, x, y);
         return head;
     }
     if (cell->value==z)
     {
+        addToList(&head, x, y, cell->value, z);
         return head;
     }
     if (cell->value == 0)

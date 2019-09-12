@@ -19,19 +19,19 @@ Move *fillCellAccordingToProb(Puzzle *puzzle, int col, int row, double *valueVsS
 		/* sum the scores */
 		for (i=0;i<N;i++)
 		{
-			printf("i=%d, score=%f\n", i, valueVsScore[i]);
+			/*printf("i=%d, score=%f\n", i, valueVsScore[i]);*/
 			sum+=valueVsScore[i];
 		}
-		print("-");
+		/*print("-");*/
 		if (sum==0)
 			return NULL;
-		printf("sum=%f, randVal=%f\n", sum, randVal);
-		print("-");
+		/*printf("sum=%f, randVal=%f\n", sum, randVal);*/
+		/*print("-");*/
 		/* change the score of each cell to its relative probability */
 		for (i=0;i<N;i++)
 		{
 			valueVsScore[i]=(valueVsScore[i]/sum);
-			printf("i=%d, score=%f\n", i, valueVsScore[i]);
+			/*printf("i=%d, score=%f\n", i, valueVsScore[i]);*/
 		}
 
 		/* choose value randomly */
@@ -42,11 +42,11 @@ Move *fillCellAccordingToProb(Puzzle *puzzle, int col, int row, double *valueVsS
 			sum+=valueVsScore[i];
 			i++; /* when exit the loop, i is the random value */
 		}
-		printf("sum=%f, randVal=%f\n", sum, randVal);
-		printf("chosen value for cell <%d,%d> is %d\n", col, row, i);
+		/*printf("sum=%f, randVal=%f\n", sum, randVal);*/
+		/*printf("chosen value for cell <%d,%d> is %d\n", col, row, i);*/
 		/* if the chosen value turns the board to erroneous choose another value */
 		head = setCell(puzzle, col, row, i, Solve);
-		print("after setCell");
+		/*print("after setCell");*/
 		if (isBoardErr(puzzle))
 		{
 			isBoardErroneous = true;
@@ -57,7 +57,11 @@ Move *fillCellAccordingToProb(Puzzle *puzzle, int col, int row, double *valueVsS
 	}
 	while (isBoardErroneous);
 
-	return head;
+	if (head==NULL)
+    {
+        addToList(&head, col, row, 0, 0);
+    }
+    return head;
 }
 
 int addVars(GRBmodel **model, GRBenv **env, int numOfVarsToAdd, double *obj, char *vtype)
@@ -191,7 +195,7 @@ void randomCoefficients(double *array, int N)
 
 	do
 	{
-		printf("i=%d\n", i);
+		/*printf("i=%d\n", i);*/
         r=(rand()%(N))+1;
 		if (!inArray(r,array,N))
 		{
@@ -236,15 +240,15 @@ int updateVariables(Puzzle *puzzle, bool isILP, GRBmodel **model, GRBenv **env)
         }
     }
 
-    print("A");
-    printf("blockNumOfCells=%d\n", blockNumOfCells);
+    /*print("A");*/
+    /*printf("blockNumOfCells=%d\n", blockNumOfCells);*/
     values = (int *)calloc(blockNumOfCells + 1, sizeof(int));
     if (values == NULL) /* calloc failed */
     {
         printError(MemoryAllocFailed, NULL, 0, 0);
         exit(0);
     }
-    print("B");
+    /*print("B");*/
     obj = (double *)calloc(maxNumOfVars, sizeof(double));
     if (obj == NULL) /* calloc failed */
     {
@@ -252,7 +256,7 @@ int updateVariables(Puzzle *puzzle, bool isILP, GRBmodel **model, GRBenv **env)
         free(values);
         exit(0);
     }
-    print("C");
+    /*print("C");*/
     vtype = (char *)calloc(maxNumOfVars, sizeof(char));
     if (vtype == NULL) /* calloc failed */
     {
@@ -261,7 +265,7 @@ int updateVariables(Puzzle *puzzle, bool isILP, GRBmodel **model, GRBenv **env)
         free(obj);
         exit(0);
     }
-    print("D");
+    /*print("D");*/
     for (row = 1; row < blockNumOfCells + 1; row++)
     {
         for (col = 1; col < blockNumOfCells + 1; col++)
@@ -283,10 +287,10 @@ int updateVariables(Puzzle *puzzle, bool isILP, GRBmodel **model, GRBenv **env)
         }
     }
     cnt--;
-    printf("E");
+    /*printf("E");*/
     if (isILP)
     {
-    	printf("F");
+    	/*printf("F");*/
         for(i=0; i<cnt; i++)
     	{
     		obj[i] = 1.0;
@@ -295,7 +299,7 @@ int updateVariables(Puzzle *puzzle, bool isILP, GRBmodel **model, GRBenv **env)
     }
     else
     {
-    	printf("G");
+    	/*printf("G");*/
         upperBounds = (double*)calloc(maxNumOfVars, sizeof(double));
         if (upperBounds==NULL) /* calloc failed */
         {
@@ -309,16 +313,16 @@ int updateVariables(Puzzle *puzzle, bool isILP, GRBmodel **model, GRBenv **env)
             vtype[i] = GRB_CONTINUOUS;
             upperBounds[i] = 1.0;
     	}
-    	printf("before randomCoefficients\n");
+    	/*printf("before randomCoefficients\n");*/
         randomCoefficients(obj, cnt);
-        printf("after randomCoefficients\n");
+        /*printf("after randomCoefficients\n");*/
     	/*for(i=0; i<cnt; i++)
 		{
 			printf("%f, ", obj[i]);
 		}
     	printf("\n");*/
     }
-    print("H");
+    /*print("H");*/
     
     /*printf("*model=%d, cnt=%d, 3rd=%d, 4th=NULL, 5th=NULL 6th=NULL, obj=%f, 8th=NULL, upperBound=%f, vtype=%c, 11th=NULL\n", (*model==NULL?0:1), cnt, 0, obj[cnt-1], (upperBoundPtr==NULL?0:*upperBoundPtr), vtype[cnt-1]);*/  
     /*printf("upper=%f, vtype[cnt-1]=%c\n", *upperBoundPtr, vtype[cnt-1]);*/
@@ -343,7 +347,7 @@ int updateVariables(Puzzle *puzzle, bool isILP, GRBmodel **model, GRBenv **env)
 		free(vtype);
 		return -1;
 	}
-    print("I");
+    /*print("I");*/
     if (setIntAttr(model, env) == -1)
     {
         free(values);
@@ -351,7 +355,7 @@ int updateVariables(Puzzle *puzzle, bool isILP, GRBmodel **model, GRBenv **env)
         free(vtype);
         return -1;
     }
-    print("J");
+    /*print("J");*/
     free(values);
     free(obj);
     free(vtype);
@@ -379,14 +383,14 @@ int addCellsConstraints(Puzzle *puzzle, GRBmodel *model, GRBenv *env)
     char temp[20] = {0};
     int *ind;
     double *val;
-    print("a");
+    /*print("a");*/
     ind = (int *)calloc(blockNumOfCells, sizeof(int));
     if (ind == NULL) /* calloc failed */
     {
         printError(MemoryAllocFailed, NULL, 0, 0);
         exit(0);
     }
-    print("b");
+    /*print("b");*/
     val = (double *)calloc(blockNumOfCells, sizeof(double));
     if (val == NULL) /* calloc failed */
     {
@@ -394,7 +398,7 @@ int addCellsConstraints(Puzzle *puzzle, GRBmodel *model, GRBenv *env)
         free(ind);
         exit(0);
     }
-    print("c");
+    /*print("c");*/
     for (row = 1; row < blockNumOfCells + 1; row++)
     {
         for (col = 1; col < blockNumOfCells + 1; col++)
@@ -418,7 +422,7 @@ int addCellsConstraints(Puzzle *puzzle, GRBmodel *model, GRBenv *env)
             cnt = 0;
         }
     }
-    print("d");
+    /*print("d");*/
     free(ind);
     free(val);
     return 0;
@@ -587,7 +591,7 @@ int findSolution(Puzzle *puzzle, bool isILP, int *numOfVariables, double **solPt
     int error=0;
     int optimstatus=0;
     int success=0;
-    double objval=0;
+    /*double objval=0;*/
 
     /* if statement added to avoid unused error (pedantic-error) */
 	if (puzzle==NULL && isILP==true && numOfVariables==NULL && *solPtr==NULL)
@@ -620,9 +624,9 @@ int findSolution(Puzzle *puzzle, bool isILP, int *numOfVariables, double **solPt
 	initVariables(puzzle->blockNumOfCells);
 
 	/* Change objective sense to maximization */
-	print("1");
+	/*print("1");*/
 	*numOfVariables = updateVariables(puzzle, isILP, modelPtr, envPtr);
-	print("2");
+	/*print("2");*/
 
 	*solPtr = (double *)calloc(*numOfVariables, sizeof(double));
 	if (*solPtr == NULL) /* calloc failed */
@@ -630,7 +634,7 @@ int findSolution(Puzzle *puzzle, bool isILP, int *numOfVariables, double **solPt
 		printError(MemoryAllocFailed, NULL, 0, 0);
 		exit(0);
 	}
-	print("3");
+	/*print("3");*/
 	/* update the model - to integrate new variables */
 	error = GRBupdatemodel(model);
 	if (error) {
@@ -638,32 +642,32 @@ int findSolution(Puzzle *puzzle, bool isILP, int *numOfVariables, double **solPt
 		success = -1;
 		goto END;
 	}
-	print("4");
+	/*print("4");*/
 	/* add constraints to model */
 	if (addCellsConstraints(puzzle, model, env) == -1)
 	{
 		success = -1;
 		goto END;
 	}
-	print("5");
+	/*print("5");*/
 	if (addRowsConstraints(puzzle, model, env) == -1)
 	{
 		success = -1;
 		goto END;
 	}
-	print("6");
+	/*print("6");*/
 	if (addColsConstraints(puzzle, model, env) == -1)
 	{
 		success = -1;
 		goto END;
 	}
-	print("7");
+	/*print("7");*/
 	if (addBlocksConstraints(puzzle, model, env) == -1)
 	{
 		success = -1;
 		goto END;
 	}
-	print("8");
+	/*print("8");*/
 	/* Optimize model - need to call this before calculation */
 	error = GRBoptimize(model);
 	if (error) {
@@ -671,7 +675,7 @@ int findSolution(Puzzle *puzzle, bool isILP, int *numOfVariables, double **solPt
 		success = -1;
 		goto END;
 	}
-	print("9");
+	/*print("9");*/
 	/* Write model to 'mip1.lp' - this is not necessary but very helpful */
 	error = GRBwrite(model, "mip1.lp");
 	if (error) {
@@ -679,7 +683,7 @@ int findSolution(Puzzle *puzzle, bool isILP, int *numOfVariables, double **solPt
 		success = -1;
 		goto END;
 	}
-	print("10");
+	/*print("10");*/
 	/* Get solution information */
 	error = GRBgetintattr(model, GRB_INT_ATTR_STATUS, &optimstatus);
 	if (error) {
@@ -687,7 +691,7 @@ int findSolution(Puzzle *puzzle, bool isILP, int *numOfVariables, double **solPt
 		success = -1;
 		goto END;
 	}
-	print("11");
+	/*print("11");*/
 	/* get the objective -- the optimal result of the function */
 	/* not necessary but may be harmful to gurobi using */
 	/*error = GRBgetdblattr(model, GRB_DBL_ATTR_OBJVAL, &objval);
@@ -697,27 +701,27 @@ int findSolution(Puzzle *puzzle, bool isILP, int *numOfVariables, double **solPt
 	}*/
 
 	/* print results */
-	printf("\nOptimization complete\n");
+	/*printf("\nOptimization complete\n");*/
 
 	/* solution found */
 	if (optimstatus == GRB_OPTIMAL) {
 		success = 1;
-		printf("Optimal objective: %.4e\n", objval);
+		/*printf("Optimal objective: %.4e\n", objval);*/
 	}
 	/* no solution found */
 	else if (optimstatus == GRB_INF_OR_UNBD) {
 		success = 0;
-		printf("Model is infeasible or unbounded\n");
+		/*printf("Model is infeasible or unbounded\n");*/
 		goto END;
 	}
 	/* error or calculation stopped */
 	else {
-		printf("Optimization was stopped early\n");
+		/*printf("Optimization was stopped early\n");*/
 		success = -1;
 		goto END;
 	}
 
-	print("beginning of if (success)");
+	/*print("beginning of if (success)");*/
 	/* get the solution - the assignment to each variable */
 	/* 3-- number of variables, the size of "sol" should match */
 	error = GRBgetdblattrarray(model, GRB_DBL_ATTR_X, 0, *numOfVariables, *solPtr);
@@ -726,11 +730,11 @@ int findSolution(Puzzle *puzzle, bool isILP, int *numOfVariables, double **solPt
 		success = -1;
 		goto END;
 	}
-    printf("sol=%d\n", *solPtr==NULL?0:1);
+    /*printf("sol=%d\n", *solPtr==NULL?0:1);
     printf("sol[0]=%f\n", *solPtr[0]);
-	print("end of if (success)");
+	print("end of if (success)");*/
 
-	print("12");
+	/*print("12");*/
 
 	/* IMPORTANT !!! - Free model and environment */
 
@@ -749,13 +753,13 @@ int ILPSolvable(Puzzle *puzzle)
 	int numOfVariables;
 	double *sol = NULL;
 	int success = 0;
-	print("in ILPSolvable");
+	/*print("in ILPSolvable");*/
 	success = findSolution(puzzle, true, &numOfVariables, &sol);
-	print("after findSolution");
+	/*print("after findSolution");*/
 	if (sol!=NULL)
 		free(sol);
 	freeVariables(puzzle->blockNumOfCells);
-	print("after freeVariables");
+	/*print("after freeVariables");*/
 	return success;
 }
 
@@ -815,12 +819,12 @@ Move* fillDblSolution(Puzzle *puzzle, double threshold, double *sol)
     	printError(MemoryAllocFailed, NULL, 0, 0);
     	exit(0);
     }
-    if(head==NULL)
+    if(head==NULL) /*???*/
     {
         head = NULL;
     }
 
-    print("---1");
+    /*print("---1");*/
 
     for (row = 1; row < blockNumOfCells + 1; row++)
     {
@@ -846,16 +850,16 @@ Move* fillDblSolution(Puzzle *puzzle, double threshold, double *sol)
                 	scores[k-1] = 0.0;
                 }
             }
-            printf("before fillCellAccordingToProb cell <%d,%d>\n", col, row);
+            /*printf("before fillCellAccordingToProb cell <%d,%d>\n", col, row);*/
         	m = fillCellAccordingToProb(puzzle, col, row, scores);
-        	printf("after fillCellAccordingToProb cell <%d,%d>\n", col, row);
+        	/*printf("after fillCellAccordingToProb cell <%d,%d>\n", col, row);*/
         	concat(&head, &m);
-        	print("after concat");
+        	/*print("after concat");*/
         }
     }
-    print("---2");
+    /*print("---2");*/
     free(scores);
-    print("---3");
+    /*print("---3");*/
     return head;
 }
 
@@ -873,21 +877,21 @@ Move* LPSolver(Puzzle *puzzle, double threshold)
 	double *sol = NULL;
 	int success;
     Move* head = NULL;
-    print("a");
+    /*print("a");*/
 	success = findSolution(puzzle, false, &numOfVariables, &sol);
-	print("b");
+	/*print("b");*/
 	if (success == 1)
 	{
-		print("c");
+		/*print("c");*/
 		head = fillDblSolution(puzzle, threshold, sol);
-		print("d");
+		/*print("d");*/
 	}
-	print("e");
+	/*print("e");*/
 	if(sol!=NULL)
 		free(sol);
-	print("f");
+	/*print("f");*/
 	freeVariables(puzzle->blockNumOfCells);
-	print("g");
+	/*print("g");*/
 	return head;
 }
 /* 
@@ -899,23 +903,23 @@ int LPCellValues(Puzzle *puzzle, int col, int row, double *values)
     int numOfVariables = 0;
 	double *sol = NULL;
 	int success=0, k=0, index=0;
-	printf("in LPCellValues\n");
+	/*printf("in LPCellValues\n");*/
     success = findSolution(puzzle, false, &numOfVariables, &sol);
-    printf("success=%d\n", success);
-    printf("numOfVariables=%d\n", numOfVariables);
-    printf("sol=%d\n", sol==NULL?0:1);
+    /*printf("success=%d\n", success);*/
+    /*printf("numOfVariables=%d\n", numOfVariables);*/
+    /*printf("sol=%d\n", sol==NULL?0:1);*/
 	if (success == 1)
 	{
 		for (k=1; k<puzzle->blockNumOfCells+1; k++)
         {
-            printf("k=%d\n", k);
+            /*printf("k=%d\n", k);*/
             index = variables[row-1][col-1][k-1];
-            printf("variables[%d][%d][%d]=%d\n", row-1, col-1, k-1, index);
+            /*printf("variables[%d][%d][%d]=%d\n", row-1, col-1, k-1, index);*/
             if (index)
             {
-                printf("index=%d\n", index);
+                /*printf("index=%d\n", index);*/
                 values[k-1] = sol[index-1];
-                printf("values[%d]=%f\n", k-1, values[k-1]);
+                /*printf("values[%d]=%f\n", k-1, values[k-1]);*/
             }
         }
 	}
@@ -931,21 +935,21 @@ int ILPCellSolver(Puzzle *puzzle, int col, int row)
 	double *sol = NULL, isSol=0.0;
 	int success=0, k=0, index=0, cellSol=0;
 	success = findSolution(puzzle, true, &numOfVariables, &sol);
-    printf("success=%d\n", success);
+    /*printf("success=%d\n", success);
     printf("numOfVariables=%d\n", numOfVariables);
-    printf("sol=%d\n", sol==NULL?0:1);
+    printf("sol=%d\n", sol==NULL?0:1);*/
 	if (success == 1)
 	{
 		for (k=1; k<puzzle->blockNumOfCells+1; k++)
         {
-            printf("k=%d\n", k);
-            printf("variables[%d][%d][%d]=%d\n", row-1, col-1, k-1, variables[row-1][col-1][k-1]);
+            /*printf("k=%d\n", k);
+            printf("variables[%d][%d][%d]=%d\n", row-1, col-1, k-1, variables[row-1][col-1][k-1]);*/
             if (variables[row-1][col-1][k-1] != 0)
             {
                 index = variables[row-1][col-1][k-1] - 1;
-                printf("index=%d\n", index);
+                /*printf("index=%d\n", index);*/
                 isSol = sol[index];
-                printf("isSol=%f\n", isSol);
+                /*printf("isSol=%f\n", isSol);*/
                 if (isSol == 1.0)
                 {
                     cellSol = k;

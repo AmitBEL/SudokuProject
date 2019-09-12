@@ -52,6 +52,8 @@ void printError(ErrorMsg err, char* param1, int bound1, int bound2) {
 		printf("board dimensions must be positive");
 	else if (err == IllegalBoard)
 		printf("illegal board");
+	else if (err == CommandDoesNotExists)
+		printf("no such command exists");
 	else
 		printf("no data about error found");
 	printf("\n");

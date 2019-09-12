@@ -1,13 +1,13 @@
 #ifndef ERRORHANDLER_H_
 #define ERRORHANDLER_H_
-#define MAX_INPUT_CHARS 258
+#define MAX_INPUT_CHARS 256
 
 typedef enum ErrorMsg {
 	InvalidCommand, IndexOutOfBounds, TooLongInput, FunctionFailed, MemoryAllocFailed,
 	ReadingFileFailed, WritingFileFailed, Erroneous, Validate, WrongNumOfParams, WrongNumOfParamsBounds,
 	CommandFailed, WrongMode, ParamOutOfBounds, ParamIsNotNum, EmptyCellsParamRange,
 	GenerationFailed, NoMoreUndo, NoMoreRedo, FixedCell, CellHasValue, BigBoard, IllegalBoard,
-	DimNotPositive
+	DimNotPositive, CommandDoesNotExists
 } ErrorMsg;
 
 void printError(ErrorMsg err, char* param1, int bound1, int bound2);

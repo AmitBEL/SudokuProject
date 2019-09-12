@@ -390,7 +390,7 @@ void printBoard(int mark)
     int C = 4;           /* num of chars every cell take to print */
     int numOfdashes = M * (N * C + 1) + 1;
 
-    printf("errors: %d\n", puzzle->numOfErroneous); /* TODO - delete before submission */
+    /* printf("errors: %d\n", puzzle->numOfErroneous); */
 
     for (l = 0; l < numOfdashes; l++) /* print first dashes row */
     {
@@ -443,7 +443,7 @@ void printBoard(int mark)
 		}
 		printf("\n");
     }
-    printf("num of empty cells: %d\n", numOfEmptyCells());
+    /*printf("num of empty cells: %d\n", numOfEmptyCells());*/
     return;
 }
 
@@ -470,7 +470,7 @@ bool isErroneous() {
 bool validate(bool printResult)
 {
 	int success = 0;
-	print("in validate");
+	/*print("in validate");*/
 	success = ILPSolvable(puzzle);
     if (success == 1)
     {
@@ -622,7 +622,7 @@ Move* autoFill(Mode mode)
     toFill->numOfEmptyCells = puzzle->numOfEmptyCells;
     toFill->numOfErroneous = puzzle->numOfErroneous;
     toFill->board = (Cell **)calloc(puzzle->blockNumOfCells, sizeof(Cell *)); /* create empty board to the new puzzle */
-    printf("A");
+    /*printf("A");*/
     if (toFill->board == NULL)
     { /* calloc failed */
         printError(MemoryAllocFailed, NULL,0,0);
@@ -640,31 +640,32 @@ Move* autoFill(Mode mode)
             printError(MemoryAllocFailed, NULL,0,0);
         }
     }
-    printf("B");
+    /*printf("B");*/
     for (i = 0; i < puzzle->blockNumOfCells; i++)
     { /* fill the new puzzle board with obvious values only */
         for (j = 0; j < puzzle->blockNumOfCells; j++)
         {
             cell = getCell(puzzle, j+1, i+1);
-            printf("C");
+            /*printf("C");*/
             if (!(cell->value))
             {
-            	printf("D");
+            	/*printf("D");*/
                 values = numOfCellSol(puzzle, j+1, i+1, values);
-                printf("cell <%d,%d> values[0]=%d\n", j+1, i+1, values[0]);
+                /*printf("cell <%d,%d> values[0]=%d\n", j+1, i+1, values[0]);*/
                 if (values[0] == 1)
                 {
                     for (k = 1; k < (puzzle->blockNumOfCells)+1; k++)
                     {
-                        printf("k=%d", k);
-                    	printf("values[%d]=%d, ", k, values[k]);
-                        printCustomBoard(toFill->board, puzzle->blockNumOfCells, puzzle->blockNumOfCells);
+                        /*printf("k=%d", k);*/
+                    	/*printf("values[%d]=%d, ", k, values[k]);*/
+                        /*printCustomBoard(toFill->board, puzzle->blockNumOfCells, puzzle->blockNumOfCells);*/
                     	if (values[k] == 1)
                         {
                             /*value = k;*/
-                    		(toFill->board[i][j]).value = k;
-                    		printf("....\n");
-                    		printCustomBoard(toFill->board, puzzle->blockNumOfCells, puzzle->blockNumOfCells);
+                    		setCell(toFill, j+1, i+1, k, Solve);
+                            /*(toFill->board[i][j]).value = k;*/
+                    		/*printf("....\n");*/
+                    		/*printCustomBoard(toFill->board, puzzle->blockNumOfCells, puzzle->blockNumOfCells);*/
                             break;
                         }
                     }
@@ -673,7 +674,8 @@ Move* autoFill(Mode mode)
             }
         }
     }
-    printf("E");
+    /*printf("E");*/
+    printf("change:\n");
     for (i = 0; i < puzzle->blockNumOfCells; i++)
     { /* fill the original puzzle board with the obvious values from the new puzzle board */
         for (j = 0; j < puzzle->blockNumOfCells; j++)
@@ -684,10 +686,10 @@ Move* autoFill(Mode mode)
                 value = toFill->board[i][j].value;
                 if (value)
                 {
-                	printf("    cell <%d,%d> changed from %d to %d", j+1, i+1, cell->value, value); /* not a comment but part of the game! */
+                	printf("       cell <%d,%d> from %d to %d\n", j+1, i+1, cell->value, value); /* not a comment but part of the game! */
                 	m=set(j + 1, i + 1, value, mode);
                     concat(&head, &m);
-                    printf(" after concat\n");
+                    /*printf(" after concat\n");*/
                 }
             }
         }
@@ -700,6 +702,11 @@ Move* autoFill(Mode mode)
     free(toFill->board);
     free(values);
 
+    if (head==NULL)
+    {
+        printf("       no change\n");
+        addToList(&head, 0, 0, 0, 0);
+    }
     return head;
 }
 
