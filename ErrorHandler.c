@@ -39,9 +39,9 @@ void printError(ErrorMsg err, char* param1, int bound1, int bound2) {
 	else if (err == GenerationFailed)
 		printf("puzzle generator has failed");
 	else if (err == NoMoreUndo)
-		printf("no moves to undo left");
+		printf("no moves to undo");
 	else if (err == NoMoreRedo)
-		printf("no moves to redo left");
+		printf("no moves to redo");
 	else if (err == FixedCell)
 		printf("cell <%d,%d> is fixed", bound1, bound2);
 	else if (err == CellHasValue)
