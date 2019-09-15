@@ -884,6 +884,10 @@ Move* LPSolver(Puzzle *puzzle, double threshold)
 	{
 		/*print("c");*/
 		head = fillDblSolution(puzzle, threshold, sol);
+        if(head==NULL)
+	    {
+		    addToList(&head, 0, 0, 0, 0);
+	    }
 		/*print("d");*/
 	}
 	/*print("e");*/

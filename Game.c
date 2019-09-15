@@ -614,6 +614,7 @@ Move* autoFill(Mode mode)
     Puzzle newPuzzle = {0, 0, 0, 0, 0, 0, 0};
     Puzzle *toFill = &newPuzzle; /* create new empty puzzle */
     Move* m;
+    bool firstChange = true;
 
     toFill->blockNumCol = puzzle->blockNumCol;
     toFill->blockNumOfCells = puzzle->blockNumOfCells;
@@ -675,7 +676,7 @@ Move* autoFill(Mode mode)
         }
     }
     /*printf("E");*/
-    printf("change:\n");
+    /*printf("change:\n");*/
     for (i = 0; i < puzzle->blockNumOfCells; i++)
     { /* fill the original puzzle board with the obvious values from the new puzzle board */
         for (j = 0; j < puzzle->blockNumOfCells; j++)
@@ -686,7 +687,12 @@ Move* autoFill(Mode mode)
                 value = toFill->board[i][j].value;
                 if (value)
                 {
-                	printf("       cell <%d,%d> from %d to %d\n", j+1, i+1, cell->value, value); /* not a comment but part of the game! */
+                	if (firstChange)
+                    {
+                        printf("change:\n");
+                        firstChange = false;
+                    }
+                    printf("       cell <%d,%d> from %d to %d\n", j+1, i+1, cell->value, value); /* not a comment but part of the game! */
                 	m=set(j + 1, i + 1, value, mode);
                     concat(&head, &m);
                     /*printf(" after concat\n");*/
@@ -704,7 +710,7 @@ Move* autoFill(Mode mode)
 
     if (head==NULL)
     {
-        printf("       no change\n");
+        /*printf("       no change\n");*/
         addToList(&head, 0, 0, 0, 0);
     }
     return head;
