@@ -15,7 +15,7 @@ void addStep(Move *moves);
 
 void resetStepsList();
 
-bool undo(Mode mode);
+bool undo(Mode mode, bool printChanges);
 
 bool redo(Mode mode);
 
@@ -37,7 +37,7 @@ void undoAllSteps(Mode mode)
 {
 	bool makeUndo = true;
 	while (makeUndo)
-		makeUndo = undo(mode);
+		makeUndo = undo(mode, false);
 
 	/*if (currentMove == NULL)
 		printf("currentMove=NULL\n");
@@ -47,9 +47,10 @@ void undoAllSteps(Mode mode)
 }
 
 /* undo one step */
-bool undo(Mode mode)
+bool undo(Mode mode, bool printChanges)
 {
 	Move *moves, *dummyMove;
+	bool firstChange = true;
 	if (stepsList == NULL) /* currentMove=NULL too, the list is empty */
 		return false;
 	else if (currentMove == NULL) /* user made undo to all steps */
@@ -57,20 +58,45 @@ bool undo(Mode mode)
 	else
 	{
 		moves = currentMove->moves;
-		printf("change:\n");
+		/*if (printChanges)
+		{
+			printf("change:\n");
+		}*/
 		while (moves != NULL)
 		{
-			if (moves->x==0)
+			if (moves->x!=0)
 			{
-				printf("       no change\n");
-			}
-			else
-			{
-				printf("       cell <%d,%d> from %d to %d\n", moves->x, moves->y, moves->newValue, moves->oldValue);
+				if (printChanges)
+				{
+					if (firstChange)
+					{
+						printf("change:\n");
+						firstChange = false;
+					}
+					printf("       cell <%d,%d> from %d to %d\n", moves->x, moves->y, moves->newValue, moves->oldValue);
+				}
 				dummyMove = set(moves->x, moves->y, moves->oldValue, mode);
 				deleteList(dummyMove);
 			}
 			moves = moves->next;
+
+			/*if (moves->x==0)
+			{
+				if (printChanges)
+				{
+					printf("       no change\n");
+				}
+			}
+			else
+			{
+				if (printChanges)
+				{
+					printf("       cell <%d,%d> from %d to %d\n", moves->x, moves->y, moves->newValue, moves->oldValue);
+				}
+				dummyMove = set(moves->x, moves->y, moves->oldValue, mode);
+				deleteList(dummyMove);
+			}
+			moves = moves->next;*/
 		}
 		/* check if currentMove is not the first */
 		if (currentMove->prev != NULL)
@@ -92,15 +118,28 @@ bool undo(Mode mode)
 bool redo(Mode mode)
 {
 	Move *moves, *dummyMove;
+	bool firstChange = true;
 	if (stepsList == NULL) /* currentMove=NULL too, the list is empty */
 		return false;
 	else if (currentMove == NULL) /* user made undo to all steps */
 	{
 		moves = stepsList->moves;
-		printf("change:\n");
+		/*printf("change:\n");*/
 		while (moves != NULL)
 		{
-			if(moves->x==0)
+			if (moves->x!=0)
+			{
+				if (firstChange)
+				{
+					printf("change:\n");
+					firstChange = false;
+				}
+				printf("       cell <%d,%d> from %d to %d\n", moves->x, moves->y, moves->oldValue, moves->newValue);
+				dummyMove = set(moves->x, moves->y, moves->newValue, mode);
+				deleteList(dummyMove);
+			}
+			
+			/*if(moves->x==0)
 			{
 				printf("       no change\n");
 			}
@@ -109,7 +148,7 @@ bool redo(Mode mode)
 				printf("       cell <%d,%d> from %d to %d\n", moves->x, moves->y, moves->oldValue, moves->newValue);
 				dummyMove = set(moves->x, moves->y, moves->newValue, mode);
 				deleteList(dummyMove);
-			}
+			}*/
 			moves = moves->next;
 		}
 		currentMove = stepsList;
@@ -125,10 +164,22 @@ bool redo(Mode mode)
 	else if (currentMove->next != NULL) /* currentMove is not the last step */
 	{
 		moves = currentMove->next->moves;
-		printf("change:\n");
+		/*printf("change:\n");*/
 		while (moves != NULL)
 		{
-			if (moves->x==0)
+			if (moves->x!=0)
+			{
+				if (firstChange)
+				{
+					printf("change:\n");
+					firstChange = false;
+				}
+				printf("       cell <%d,%d> from %d to %d\n", moves->x, moves->y, moves->oldValue, moves->newValue);
+				dummyMove = set(moves->x, moves->y, moves->newValue, mode);
+				deleteList(dummyMove);
+			}
+			
+			/*if (moves->x==0)
 			{
 				printf("       no change\n");
 			}
@@ -137,7 +188,7 @@ bool redo(Mode mode)
 				printf("       cell <%d,%d> from %d to %d\n", moves->x, moves->y, moves->oldValue, moves->newValue);
 				dummyMove = set(moves->x, moves->y, moves->newValue, mode);
 				deleteList(dummyMove);
-			}
+			}*/
 			moves = moves->next;
 		}
 		currentMove = currentMove->next;
@@ -542,7 +593,7 @@ When several errors exist for the same command, follow this order:
 		{
 			if (param1 == NULL)
 			{
-				if (undo(mode))
+				if (undo(mode, true))
 					printBoard(mark_errors);
 				else
 					printError(NoMoreUndo, NULL, 0, 0);
