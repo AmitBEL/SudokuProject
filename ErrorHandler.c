@@ -39,9 +39,9 @@ void printError(ErrorMsg err, char* param1, int bound1, int bound2) {
 	else if (err == GenerationFailed)
 		printf("puzzle generator has failed");
 	else if (err == NoMoreUndo)
-		printf("no moves to undo left");
+		printf("no moves to undo");
 	else if (err == NoMoreRedo)
-		printf("no moves to redo left");
+		printf("no moves to redo");
 	else if (err == FixedCell)
 		printf("cell <%d,%d> is fixed", bound1, bound2);
 	else if (err == CellHasValue)
@@ -52,6 +52,8 @@ void printError(ErrorMsg err, char* param1, int bound1, int bound2) {
 		printf("board dimensions must be positive");
 	else if (err == IllegalBoard)
 		printf("illegal board");
+	else if (err == CommandDoesNotExists)
+		printf("no such command exists");
 	else
 		printf("no data about error found");
 	printf("\n");

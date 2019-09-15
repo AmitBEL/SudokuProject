@@ -39,11 +39,11 @@ void undoAllSteps(Mode mode)
 	while (makeUndo)
 		makeUndo = undo(mode);
 
-	if (currentMove == NULL)
+	/*if (currentMove == NULL)
 		printf("currentMove=NULL\n");
 	else
-		printf("currentMove=<%d,%d>\n", currentMove->moves->x, currentMove->moves->y);
-	printList(stepsList);
+		printf("currentMove=<%d,%d>\n", currentMove->moves->x, currentMove->moves->y);*/
+	/*printList(stepsList);*/
 }
 
 /* undo one step */
@@ -57,10 +57,19 @@ bool undo(Mode mode)
 	else
 	{
 		moves = currentMove->moves;
+		printf("change:\n");
 		while (moves != NULL)
 		{
-			dummyMove = set(moves->x, moves->y, moves->oldValue, mode);
-			deleteList(dummyMove);
+			if (moves->x==0)
+			{
+				printf("       no change\n");
+			}
+			else
+			{
+				printf("       cell <%d,%d> from %d to %d\n", moves->x, moves->y, moves->newValue, moves->oldValue);
+				dummyMove = set(moves->x, moves->y, moves->oldValue, mode);
+				deleteList(dummyMove);
+			}
 			moves = moves->next;
 		}
 		/* check if currentMove is not the first */
@@ -69,11 +78,11 @@ bool undo(Mode mode)
 		else
 			currentMove = NULL;
 
-		if (currentMove == NULL)
+		/*if (currentMove == NULL)
 			printf("currentMove=NULL\n");
 		else
 			printf("currentMove=<%d,%d>\n", currentMove->moves->x, currentMove->moves->y);
-		printList(stepsList);
+		printList(stepsList);*/
 
 		return true;
 	}
@@ -88,38 +97,56 @@ bool redo(Mode mode)
 	else if (currentMove == NULL) /* user made undo to all steps */
 	{
 		moves = stepsList->moves;
+		printf("change:\n");
 		while (moves != NULL)
 		{
-			dummyMove = set(moves->x, moves->y, moves->newValue, mode);
-			deleteList(dummyMove);
+			if(moves->x==0)
+			{
+				printf("       no change\n");
+			}
+			else
+			{
+				printf("       cell <%d,%d> from %d to %d\n", moves->x, moves->y, moves->oldValue, moves->newValue);
+				dummyMove = set(moves->x, moves->y, moves->newValue, mode);
+				deleteList(dummyMove);
+			}
 			moves = moves->next;
 		}
 		currentMove = stepsList;
 
-		if (currentMove == NULL)
+		/*if (currentMove == NULL)
 			printf("currentMove=NULL\n");
 		else
 			printf("currentMove=<%d,%d>\n", currentMove->moves->x, currentMove->moves->y);
-		printList(stepsList);
+		printList(stepsList);*/
 
 		return true;
 	}
 	else if (currentMove->next != NULL) /* currentMove is not the last step */
 	{
 		moves = currentMove->next->moves;
+		printf("change:\n");
 		while (moves != NULL)
 		{
-			dummyMove = set(moves->x, moves->y, moves->newValue, mode);
-			deleteList(dummyMove);
+			if (moves->x==0)
+			{
+				printf("       no change\n");
+			}
+			else
+			{
+				printf("       cell <%d,%d> from %d to %d\n", moves->x, moves->y, moves->oldValue, moves->newValue);
+				dummyMove = set(moves->x, moves->y, moves->newValue, mode);
+				deleteList(dummyMove);
+			}
 			moves = moves->next;
 		}
 		currentMove = currentMove->next;
 
-		if (currentMove == NULL)
+		/*if (currentMove == NULL)
 			printf("currentMove=NULL\n");
 		else
 			printf("currentMove=<%d,%d>\n", currentMove->moves->x, currentMove->moves->y);
-		printList(stepsList);
+		printList(stepsList);*/
 
 		return true;
 	}
@@ -136,11 +163,11 @@ void resetStepsList()
 	stepsList = NULL;
 	currentMove = NULL;
 
-	if (currentMove == NULL)
+	/*if (currentMove == NULL)
 		printf("currentMove=NULL\n");
 	else
 		printf("currentMove=<%d,%d>\n", currentMove->moves->x, currentMove->moves->y);
-	printList(stepsList);
+	printList(stepsList);*/
 }
 
 /* delete all steps from current step and add a step to the end of steps list */
@@ -165,11 +192,11 @@ void addStep(Move *moves)
 		currentMove = currentMove->next;
 	}
 
-	if (currentMove == NULL)
+	/*if (currentMove == NULL)
 		printf("currentMove=NULL\n");
 	else
 		printf("currentMove=<%d,%d>\n", currentMove->moves->x, currentMove->moves->y);
-	printList(stepsList);
+	printList(stepsList);*/
 }
 
 /* TODO */
@@ -231,8 +258,8 @@ Mode getCommand(Mode mode)
 	 * 4. ignore empty command (also empty lines, because each line is command)
 	 */
 
-	if (mode == Init)
-		printf("Welcome sudoku game!");
+	/*if (mode == Init)
+		printf("Welcome sudoku game!");*/
 
 	printf("\nEnter a command:\n");
 	/* read all buffer to reset the reader and init the input array */
@@ -309,7 +336,7 @@ When several errors exist for the same command, follow this order:
 			mark_errors = last_mark_errors;
 			resetStepsList(); /* moves to the first step and then removes all steps and moves */
 			printBoard(mark_errors);
-			return Solve;
+			return isBoardCompleted(Solve);
 		}
 		/* for many failure options, solve function handles its own errors */
 		return mode;
@@ -594,10 +621,10 @@ When several errors exist for the same command, follow this order:
 			if (param1 != NULL && param2 != NULL && param3 == NULL)
 			{
 				numOfSuccessfulScan = sscanf(param1, "%d", &x);
-				if (numOfSuccessfulScan == 1 && isNumInRange(x, 1, getNumOfCells()))
+				if (numOfSuccessfulScan == 1 && isNumInRange(x, 1, getBlockNumOfCells()))
 				{
 					numOfSuccessfulScan = sscanf(param2, "%d", &y);
-					if (numOfSuccessfulScan == 1 && isNumInRange(y, 1, getNumOfCells()))
+					if (numOfSuccessfulScan == 1 && isNumInRange(y, 1, getBlockNumOfCells()))
 					{
 						if (isErroneous())
 						{
@@ -614,13 +641,13 @@ When several errors exist for the same command, follow this order:
 					}
 					else
 					{
-						printError(ParamOutOfBounds, "2", 1, getNumOfCells());
+						printError(ParamOutOfBounds, "2", 1, getBlockNumOfCells());
 						return mode;
 					}
 				}
 				else
 				{
-					printError(ParamOutOfBounds, "1", 1, getNumOfCells());
+					printError(ParamOutOfBounds, "1", 1, getBlockNumOfCells());
 					return mode;
 				}
 			}
@@ -640,10 +667,10 @@ When several errors exist for the same command, follow this order:
 			if (param1 != NULL && param2 != NULL && param3 == NULL)
 			{
 				numOfSuccessfulScan = sscanf(param1, "%d", &x);
-				if (numOfSuccessfulScan == 1 && isNumInRange(x, 1, getNumOfCells()))
+				if (numOfSuccessfulScan == 1 && isNumInRange(x, 1, getBlockNumOfCells()))
 				{
 					numOfSuccessfulScan = sscanf(param2, "%d", &y);
-					if (numOfSuccessfulScan == 1 && isNumInRange(y, 1, getNumOfCells()))
+					if (numOfSuccessfulScan == 1 && isNumInRange(y, 1, getBlockNumOfCells()))
 					{
 						if (isErroneous())
 						{
@@ -660,13 +687,13 @@ When several errors exist for the same command, follow this order:
 					}
 					else
 					{
-						printError(ParamOutOfBounds, "2", 1, getNumOfCells());
+						printError(ParamOutOfBounds, "2", 1, getBlockNumOfCells());
 						return mode;
 					}
 				}
 				else
 				{
-					printError(ParamOutOfBounds, "1", 1, getNumOfCells());
+					printError(ParamOutOfBounds, "1", 1, getBlockNumOfCells());
 					return mode;
 				}
 			}
@@ -770,7 +797,7 @@ When several errors exist for the same command, follow this order:
 		}
 	}
 	else
-		printError(InvalidCommand, 0, 0, 0);
+		printError(CommandDoesNotExists, 0, 0, 0);
 
 	return mode;
 }

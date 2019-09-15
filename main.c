@@ -15,7 +15,7 @@ int main() {
 	for (i=0;i<256;i++)
 		printf("1");
 */
-
+	printf("Welcome sudoku game!");
 
 	while (1) {
 		mode = getCommand(mode);
