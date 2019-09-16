@@ -284,10 +284,12 @@ void UpdateMarkErrors(char *value)
 	if (strcmp(value, "1") == 0)
 	{
 		mark_errors = 1;
+		last_mark_errors = 1;
 	}
 	else if (strcmp(value, "0") == 0)
 	{
 		mark_errors = 0;
+		last_mark_errors = 0;
 	}
 }
 
@@ -432,10 +434,7 @@ When several errors exist for the same command, follow this order:
 		}
 		if (solve(param1, Solve))
 		{ /* assumption: change to new game iff new game loading succeeded */
-			if (mode==Edit) /* restore mark_errors when return to Solve after Edit */
-			{
-				mark_errors = last_mark_errors;
-			}
+			mark_errors = last_mark_errors;
 			resetStepsList(); /* moves to the first step and then removes all steps and moves */
 			printBoard(mark_errors);
 			return isBoardCompleted(Solve); /* check if full board loaded */
@@ -453,6 +452,7 @@ When several errors exist for the same command, follow this order:
 		if (EditType(param1, Edit))
 		{
 			last_mark_errors = mark_errors;
+			mark_errors = 1;
 			resetStepsList(); /* moves to the first step and then removes all steps and moves */
 			printBoard(mark_errors);
 			return Edit;
