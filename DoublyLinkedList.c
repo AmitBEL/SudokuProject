@@ -14,6 +14,7 @@ void addToDoublyList(Step** head_ref, Move* movesList)
     Step* new_node = (Step*)malloc(sizeof(Step));
 
     Step* last = *head_ref; /* used in step 5*/
+    /*printf("34. malloc Step *firstNode<%d,%d> - addToDoublyList, DoublyLinkedList\n", movesList->x, movesList->y);*/
 
     /* 2. put in the data  */
     new_node->moves = movesList;
@@ -50,6 +51,7 @@ void deleteNode(Step** head_ref, Step* del)
     if (*head_ref == NULL || del == NULL)
         return;
 
+    /*printf("34. free Step *firstNode<%d,%d> - deleteNode, DoublyLinkedList\n", del->moves->x, del->moves->y);*/
     deleteList(del->moves);
 
     /* If node to be deleted is head node */
@@ -65,6 +67,7 @@ void deleteNode(Step** head_ref, Step* del)
         del->prev->next = del->next;
 
     /* Finally, free the memory occupied by del*/
+    
     free(del);
     return;
 }

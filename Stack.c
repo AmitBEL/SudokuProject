@@ -16,6 +16,8 @@ bool push(Puzzle *puzzle, int col, int row, Stack *stk) {
 	StackNode *p = NULL;
 	int *values = (int*)calloc(puzzle->blockNumOfCells+1, sizeof(int));
 	p = (StackNode*)calloc(1, sizeof(StackNode));
+	/*printf("13. calloc int *values(p<%d,%d>->options) - push, Stack\n", col, row);*/
+	/*printf("14. calloc StackNode *p<%d,%d> - push, Stack\n", col, row);*/
 	if (p != NULL) { /* otherwise calloc failed */
 		p->col = col;
 		p->row = row;
@@ -34,11 +36,13 @@ int pop(Stack *stk) {
 	int option;
 	StackNode *p = NULL;
 
-	option = stk->top->options[0];
+	option = topOption(stk);
 	free(stk->top->options);
+	/*printf("13. free int *values(p<%d,%d>->options) - pop, Stack\n", p->col, p->row);*/
 	p = stk->top;
 	stk->top = stk->top->next;
 	stk->size--;
+	/*printf("14. free StackNode *p<%d,%d> - pop, Stack\n", p->col, p->row);*/
 	free(p);
 
 	return option;

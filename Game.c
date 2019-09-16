@@ -67,13 +67,18 @@ void cleanPuzzle()
     for (i = 0; i < puzzle->blockNumOfCells; i++)
     {
         free(puzzle->board[i]);
+        /*printf("4. free Cell *puzzle->board[%d] - cleanPuzzle, Game\n", i);*/
     }
     /* ensure that memory was allocated for board before.
      * why we need it:
      * assuming loading a file failed (non-exist file), we don't need to free the board again
      * because we didn't try to allocate memory */
     if (puzzle->blockNumOfCells>0)
-    	free(puzzle->board);
+    {
+        free(puzzle->board);
+        /*printf("3. free Cell **puzzle->board - cleanPuzzle, Game\n");*/
+    }
+    	
     puzzle->blockNumCol = 0;
     puzzle->blockNumRow = 0;
     puzzle->blockNumOfCells = 0;
@@ -97,9 +102,10 @@ void setFillBoard(int x, int y, int newValue) {
 bool fillBoard(FILE* fp, Mode mode) {
 	/* tryScanDot added to avoid unused return parameter of fscanf */
 	int i, j, N=getBlockNumOfCells(), newValue, tryScanDot=1;
-	int **board=(int**)calloc(N, sizeof(int*));
-	char ch;
+	char c;
 	Cell *cell;
+    int **board=(int**)calloc(N, sizeof(int*));
+    /*printf("1. calloc int **board - fillBoard, Game\n");*/
 
 	if (board==NULL)
 	{
@@ -110,6 +116,7 @@ bool fillBoard(FILE* fp, Mode mode) {
 	for (i=0;i<N;i++)
 	{
 		board[i]=(int*)calloc(N, sizeof(int));
+        /*printf("2. calloc int *board[%d] - fillBoard, Game\n", i);*/
 		if (board[i]==NULL)
 		{
 			printError(MemoryAllocFailed, NULL, 0, 0);
@@ -123,15 +130,23 @@ bool fillBoard(FILE* fp, Mode mode) {
 			if (fscanf(fp, "%d", &newValue)!=1)
 			{
 				for (i=0;i<N;i++)
-					free(board[i]);
+                {
+                    free(board[i]);
+                    /*printf("2. free int *board[%d] - fillBoard, Game\n", i);*/
+                }
 				free(board);
+                /*printf("1. free int **board - fillBoard, Game\n");*/
 				return false;
 			}
 			if (!isNumInRange(newValue, 0, N))
 			{
 				for (i=0;i<N;i++)
-					free(board[i]);
+                {
+                    free(board[i]);
+                    /*printf("2. free int *board[%d] - fillBoard, Game\n", i);*/
+                }
 				free(board);
+                /*printf("1. free int **board - fillBoard, Game\n");*/
 				return false;
 			}
 			/*printf("%d\n", newValue);*/
@@ -140,8 +155,8 @@ bool fillBoard(FILE* fp, Mode mode) {
 			if (newValue!=0) {
 				if (mode==Solve)
 				{
-					if(fscanf(fp, "%c", &ch)==1){
-						if (ch=='.') /* cell is not fixed when loading in edit mode */
+					if(fscanf(fp, "%c", &c)==1){
+						if (c=='.') /* cell is not fixed when loading in edit mode */
 						{
 							setFillBoard(j+1, i+1, newValue);
 							cell->fixed = 1;
@@ -152,7 +167,7 @@ bool fillBoard(FILE* fp, Mode mode) {
 				else /* mode==Edit */
 				{
 					setFillBoard(j+1, i+1, newValue);
-					tryScanDot = fscanf(fp, "%c", &ch);
+					tryScanDot = fscanf(fp, "%c", &c);
 				}
 
 			}
@@ -169,8 +184,12 @@ bool fillBoard(FILE* fp, Mode mode) {
 		if (isErroneous())
 		{
 			for (i=0;i<N;i++)
-				free(board[i]);
+            {
+                free(board[i]);
+                /*printf("2. free int *board[%d] - fillBoard, Game\n", i);*/
+            }
 			free(board);
+            /*printf("1. free int **board - fillBoard, Game\n");*/
 			return false;
 		}
 
@@ -183,8 +202,12 @@ bool fillBoard(FILE* fp, Mode mode) {
 	}
 
 	for (i=0;i<N;i++)
-		free(board[i]);
+    {
+        free(board[i]);
+        /*printf("2. free int *board[%d] - fillBoard, Game\n", i);*/
+    }
 	free(board);
+    /*printf("1. free int **board - fillBoard, Game\n");*/
 
 	return true;
 }
@@ -336,6 +359,7 @@ void createBoard(int blockNumOfRows, int blockNumOfCols)
     puzzle->numOfErroneous = 0;
 
     puzzle->board = (Cell **)calloc(puzzle->blockNumOfCells, sizeof(Cell *));
+    /*printf("3. calloc Cell **puzzle->board - createBoard, Game\n");*/
     if (puzzle->board == NULL) /* calloc failed */
     {
         printError(MemoryAllocFailed, NULL, 0, 0);
@@ -344,13 +368,16 @@ void createBoard(int blockNumOfRows, int blockNumOfCols)
     for (i = 0; i < puzzle->blockNumOfCells; i++)
     {
         puzzle->board[i] = (Cell *)calloc(puzzle->blockNumOfCells, sizeof(Cell));
+        /*printf("4. calloc Cell *puzzle->board[%d] - createBoard, Game\n", i);*/
         if (puzzle->board[i] == NULL) /* calloc failed */
         {
             for (j = 0; j < i; j++)
             {
                 free(puzzle->board[j]);
+                /*printf("4. free Cell *puzzle->board[%d] - createBoard, Game\n", j);*/
             }
             free(puzzle->board);
+            /*printf("3. free Cell **puzzle->board - createBoard, Game\n");*/
             printError(MemoryAllocFailed, NULL, 0, 0);
             exit(0);
         }
@@ -554,17 +581,20 @@ void guessHint(int x, int y)
     else
     {
         values = (double *)calloc(puzzle->blockNumOfCells, sizeof(double));
+        /*printf("5. calloc double *values - guessHint, Game\n");*/
         success = LPCellValues(puzzle, x, y, values);
         if (success == 0)
         {
             printf("Error: board is unsolvable\n");
             free(values);
+            /*printf("5. free double *values - guessHint, Game\n");*/
             return;
         }
         if (success == -1)
         {
             printf("Error: Gurobi failed\n");
             free(values);
+            /*printf("5. free double *values - guessHint, Game\n");*/
             return;
         }
 
@@ -577,6 +607,7 @@ void guessHint(int x, int y)
             }
         }
         free(values);
+        /*printf("5. free double *values - guessHint, Game\n");*/
     }
     return;
 }
@@ -610,11 +641,12 @@ Move* autoFill(Mode mode)
     Move *head = NULL;
     int i, j, k, value;
     Cell *cell;
-    int *values = (int *)calloc((puzzle->blockNumOfCells) + 1, sizeof(int));
     Puzzle newPuzzle = {0, 0, 0, 0, 0, 0, 0};
     Puzzle *toFill = &newPuzzle; /* create new empty puzzle */
     Move* m;
     bool firstChange = true;
+    int *values = (int *)calloc((puzzle->blockNumOfCells) + 1, sizeof(int));
+    /*printf("6. calloc int *values - autoFill, Game\n");*/
 
     toFill->blockNumCol = puzzle->blockNumCol;
     toFill->blockNumOfCells = puzzle->blockNumOfCells;
@@ -623,6 +655,7 @@ Move* autoFill(Mode mode)
     toFill->numOfEmptyCells = puzzle->numOfEmptyCells;
     toFill->numOfErroneous = puzzle->numOfErroneous;
     toFill->board = (Cell **)calloc(puzzle->blockNumOfCells, sizeof(Cell *)); /* create empty board to the new puzzle */
+    /*printf("7. calloc Cell **toFill->board - autoFill, Game\n");*/
     /*printf("A");*/
     if (toFill->board == NULL)
     { /* calloc failed */
@@ -631,13 +664,17 @@ Move* autoFill(Mode mode)
     for (i = 0; i < toFill->blockNumOfCells; i++)
     {
         toFill->board[i] = (Cell *)calloc(puzzle->blockNumOfCells, sizeof(Cell));
+        /*printf("8. calloc Cell *toFill->board[%d] - autoFill, Game\n", i);*/
         if (toFill->board[i] == NULL)
         { /* calloc failed */
             for (j = 0; j < i; j++)
             {
                 free(toFill->board[j]);
+                /*printf("8. free Cell *toFill->board[%d] - autoFill, Game\n", j);*/
             }
             free(toFill->board);
+            /*printf("7. free Cell **toFill->board - autoFill, Game\n");*/
+
             printError(MemoryAllocFailed, NULL,0,0);
         }
     }
@@ -704,9 +741,12 @@ Move* autoFill(Mode mode)
     for (i = 0; i < toFill->blockNumOfCells; i++)
     { /* free allocated memory */
         free(toFill->board[i]);
+        /*printf("8. free Cell *toFill->board[%d] - autoFill, Game\n", i);*/
     }
     free(toFill->board);
+    /*printf("7. free Cell **toFill->board - autoFill, Game\n");*/
     free(values);
+    /*printf("6. free int *values - autoFill, Game\n");*/
 
     if (head==NULL)
     {

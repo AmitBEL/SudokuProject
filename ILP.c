@@ -82,16 +82,18 @@ void initVariables(int blockNumOfCells)
     int row, col, k, l;
 
     variables = (int ***)calloc(blockNumOfCells, sizeof(int **));
+    /*printf("15. calloc int ***variables - initVariables, ILP\n");*/
     if (variables == NULL) /* calloc failed */
     {
         printError(MemoryAllocFailed, NULL, 0, 0);
         exit(0);
     }
 
-    for (row = 0; row < blockNumOfCells; row++)
+    /*for (row = 0; row < blockNumOfCells; row++)
     {
         variables[row] = (int **)calloc(blockNumOfCells, sizeof(int *));
-        if (variables[row] == NULL) /* calloc failed */
+        printf("16. calloc int **variables[%d] - initVariables, ILP\n", row);
+        if (variables[row] == NULL)  calloc failed 
         {
             for (col = 0; col < row; col++)
             {
@@ -101,11 +103,12 @@ void initVariables(int blockNumOfCells)
             printError(MemoryAllocFailed, NULL, 0, 0);
             exit(0);
         }
-    }
+    }*/
 
     for (row = 0; row < blockNumOfCells; row++)
     {
         variables[row] = (int **)calloc(blockNumOfCells, sizeof(int *));
+        /*printf("16. calloc int **variables[%d] - initVariables, ILP\n", row);*/
         if (variables[row] == NULL) /* calloc failed */
         {
             for (k = 0; k < row; k++)
@@ -113,10 +116,13 @@ void initVariables(int blockNumOfCells)
                 for (l = 0; l < blockNumOfCells; l++)
                 {
                     free(variables[k][l]);
+                    /*printf("17. free int *variables[%d][%d] - initVariables, ILP\n", k, l);*/
                 }
                 free(variables[k]);
+                /*printf("16. free int **variables[%d] - initVariables, ILP\n", k);*/
             }
             free(variables);
+            /*printf("15. free int ***variables - initVariables, ILP\n");*/
             printError(MemoryAllocFailed, NULL, 0, 0);
             exit(0);
         }
@@ -125,22 +131,28 @@ void initVariables(int blockNumOfCells)
             for (col = 0; col < blockNumOfCells; col++)
             {
                 variables[row][col] = (int *)calloc(blockNumOfCells, sizeof(int));
+                /*printf("17. calloc int *variables[%d][%d] - initVariables, ILP\n", row, col);*/
                 if (variables[row][col] == NULL) /* calloc failed */
                 {
                     for (l = 0; l < col; l++)
                     {
                         free(variables[row][l]);
+                        /*printf("17. free int *variables[%d][%d] - initVariables, ILP\n", row, l);*/
                     }
                     free(variables[row]);
+                    /*printf("16. free int **variables[%d] - initVariables, ILP\n", row);*/
                     for (k = 0; k < row; k++)
                     {
                         for (l = 0; l < blockNumOfCells; l++)
                         {
                             free(variables[k][l]);
+                            /*printf("17. free int *variables[%d][%d] - initVariables, ILP\n", k, l);*/
                         }
                         free(variables[k]);
+                        /*printf("16. free int **variables[%d] - initVariables, ILP\n", k);*/
                     }
                     free(variables);
+                    /*printf("15. free int ***variables - initVariables, ILP\n");*/
                     printError(MemoryAllocFailed, NULL, 0, 0);
                     exit(0);
                 }
@@ -171,10 +183,13 @@ void freeVariables(int blockNumOfCells)
         for (col = 0; col < blockNumOfCells; col++)
         {
             free(variables[row][col]);
+            /*printf("17. free int *variables[%d][%d] - freeVariables, ILP\n", row, col);*/
         }
         free(variables[row]);
+        /*printf("16. free int **variables[%d] - freeVariables, ILP\n", row);*/
     }
     free(variables);
+    /*printf("15. free int ***variables - freeVariables, ILP\n");*/
 }
 
 bool inArray(int val, double *array, int N)
@@ -217,10 +232,12 @@ int updateVariables(Puzzle *puzzle, bool isILP, GRBmodel **model, GRBenv **env)
     Cell *cell=NULL;
     int maxNumOfVars = blockNumOfCells*blockNumOfCells*blockNumOfCells;
     char **varsNames = (char**)calloc(maxNumOfVars, sizeof(char*));
+    /*printf("18. calloc char **varNames - updateVariables, ILP\n");*/
 
     if (varsNames == NULL)
     {
         free(varsNames);
+        /*printf("18. free char **varsNames - updateVariables, ILP\n");*/
         printError(MemoryAllocFailed, NULL, 0 ,0);
         exit(0);
     }
@@ -228,13 +245,16 @@ int updateVariables(Puzzle *puzzle, bool isILP, GRBmodel **model, GRBenv **env)
     for (i=0; i<maxNumOfVars; i++)
     {
         varsNames[i] = (char*)calloc(10, sizeof(char));
+        /*printf("19. calloc char *varsNames[%d] - updateVariables, ILP\n", i);*/
         if (varsNames[i] == NULL) /* calloc failed */
         {
             for (j=0; j<i; j++)
             {
                 free(varsNames[j]);
+                /*printf("19. free char *varsNames[%d] - updateVariables, ILP\n", j);*/
             }
             free(varsNames);
+            /*printf("18. free char **varsNames - updateVariables, ILP\n");*/
             printError(MemoryAllocFailed, NULL, 0 ,0);
             exit(0);
         }
@@ -243,6 +263,7 @@ int updateVariables(Puzzle *puzzle, bool isILP, GRBmodel **model, GRBenv **env)
     /*print("A");*/
     /*printf("blockNumOfCells=%d\n", blockNumOfCells);*/
     values = (int *)calloc(blockNumOfCells + 1, sizeof(int));
+    /*printf("20. calloc int *values - updateVariables, ILP\n");*/
     if (values == NULL) /* calloc failed */
     {
         printError(MemoryAllocFailed, NULL, 0, 0);
@@ -250,19 +271,24 @@ int updateVariables(Puzzle *puzzle, bool isILP, GRBmodel **model, GRBenv **env)
     }
     /*print("B");*/
     obj = (double *)calloc(maxNumOfVars, sizeof(double));
+    /*printf("21. calloc double *obj - updateVariables, ILP\n");*/
     if (obj == NULL) /* calloc failed */
     {
         printError(MemoryAllocFailed, NULL, 0, 0);
         free(values);
+        /*printf("20. free int *values - updateVariables, ILP\n");*/
         exit(0);
     }
     /*print("C");*/
     vtype = (char *)calloc(maxNumOfVars, sizeof(char));
+    /*printf("22. calloc char *vtype - updateVariables, ILP\n");*/
     if (vtype == NULL) /* calloc failed */
     {
         printError(MemoryAllocFailed, NULL, 0, 0);
         free(values);
+        /*printf("20. free int *values - updateVariables, ILP\n");*/
         free(obj);
+        /*printf("21. free double *obj - updateVariables, ILP\n");*/
         exit(0);
     }
     /*print("D");*/
@@ -301,6 +327,7 @@ int updateVariables(Puzzle *puzzle, bool isILP, GRBmodel **model, GRBenv **env)
     {
     	/*printf("G");*/
         upperBounds = (double*)calloc(maxNumOfVars, sizeof(double));
+        /*printf("23. calloc double *upperBounds - updateVariables, ILP\n");*/
         if (upperBounds==NULL) /* calloc failed */
         {
             printError(MemoryAllocFailed, NULL, 0, 0);
@@ -331,34 +358,46 @@ int updateVariables(Puzzle *puzzle, bool isILP, GRBmodel **model, GRBenv **env)
     for (i=0; i<maxNumOfVars; i++)
     {
         free(varsNames[i]);
+        /*printf("19. free char *varsNames[%d] - updateVariables, ILP\n", i);*/
     }
     free(varsNames);
+    /*printf("18. free char **varsNames - updateVariables, ILP\n");*/
 
     if (upperBounds!=NULL)
     {
         free(upperBounds);
+        /*printf("23. free double *upperBounds - updateVariables, ILP\n");*/
     }
 
 	if (error)
 	{
 		printf("ERROR %d GRBaddvars(): %s\n", error, GRBgeterrormsg(*env));
 		free(values);
+        /*printf("20. free int *values - updateVariables, ILP\n");*/
 		free(obj);
+        /*printf("21. free double *obj - updateVariables, ILP\n");*/
 		free(vtype);
+        /*printf("22. free char *vtype - updateVariables, ILP\n");*/
 		return -1;
 	}
     /*print("I");*/
     if (setIntAttr(model, env) == -1)
     {
         free(values);
+        /*printf("20. free int *values - updateVariables, ILP\n");*/
         free(obj);
+        /*printf("21. free double *obj - updateVariables, ILP\n");*/
         free(vtype);
+        /*printf("22. free char *vtype - updateVariables, ILP\n");*/
         return -1;
     }
     /*print("J");*/
     free(values);
+    /*printf("20. free int *values - updateVariables, ILP\n");*/
     free(obj);
+    /*printf("21. free double *obj - updateVariables, ILP\n");*/
     free(vtype);
+    /*printf("22. free char *vtype - updateVariables, ILP\n");*/
     return cnt;
 }
 
@@ -385,6 +424,7 @@ int addCellsConstraints(Puzzle *puzzle, GRBmodel *model, GRBenv *env)
     double *val;
     /*print("a");*/
     ind = (int *)calloc(blockNumOfCells, sizeof(int));
+    /*printf("24. calloc int *ind - addCellsConstraints, ILP\n");*/
     if (ind == NULL) /* calloc failed */
     {
         printError(MemoryAllocFailed, NULL, 0, 0);
@@ -392,10 +432,12 @@ int addCellsConstraints(Puzzle *puzzle, GRBmodel *model, GRBenv *env)
     }
     /*print("b");*/
     val = (double *)calloc(blockNumOfCells, sizeof(double));
+    /*printf("25. calloc double *val - addCellsConstraints, ILP\n");*/
     if (val == NULL) /* calloc failed */
     {
         printError(MemoryAllocFailed, NULL, 0, 0);
         free(ind);
+        /*printf("24. free int *ind - addCellsConstraints, ILP\n");*/
         exit(0);
     }
     /*print("c");*/
@@ -416,7 +458,9 @@ int addCellsConstraints(Puzzle *puzzle, GRBmodel *model, GRBenv *env)
             if (addConstraint(model, env, cnt, ind, val, temp) == -1)
             {
                 free(ind);
+                /*printf("24. free int *ind - addCellsConstraints, ILP\n");*/
 				free(val);
+                /*printf("25. free double *val - addCellsConstraints, ILP\n");*/
 				return -1;
             }
             cnt = 0;
@@ -424,7 +468,9 @@ int addCellsConstraints(Puzzle *puzzle, GRBmodel *model, GRBenv *env)
     }
     /*print("d");*/
     free(ind);
+    /*printf("24. free int *ind - addCellsConstraints, ILP\n");*/
     free(val);
+    /*printf("25. free double *val - addCellsConstraints, ILP\n");*/
     return 0;
 }
 
@@ -436,16 +482,19 @@ int addColsConstraints(Puzzle *puzzle, GRBmodel *model, GRBenv *env)
     int *ind;
     double *val;
     ind = (int *)calloc(blockNumOfCells, sizeof(int));
+    /*printf("26. calloc int *ind - addColsConstraints, ILP\n");*/
     if (ind == NULL) /* calloc failed */
     {
         printError(MemoryAllocFailed, NULL, 0, 0);
         exit(0);
     }
     val = (double *)calloc(blockNumOfCells, sizeof(double));
+    /*printf("27. calloc double *val - addColsConstraints, ILP\n");*/
     if (val == NULL) /* calloc failed */
     {
         printError(MemoryAllocFailed, NULL, 0, 0);
         free(ind);
+        /*printf("26. free int *ind - addColsConstraints, ILP\n");*/
         exit(0);
     }
     for (col = 1; col < blockNumOfCells + 1; col++)
@@ -465,14 +514,18 @@ int addColsConstraints(Puzzle *puzzle, GRBmodel *model, GRBenv *env)
             if (addConstraint(model, env, cnt, ind, val, temp) == -1)
             {
                 free(ind);
+                /*printf("26. free int *ind - addColsConstraints, ILP\n");*/
 				free(val);
+                /*printf("27. free double *val - addColsConstraints, ILP\n");*/
 				return -1;
             }
             cnt = 0;
         }
     }
     free(ind);
+    /*printf("26. free int *ind - addColsConstraints, ILP\n");*/
     free(val);
+    /*printf("27. free double *val - addColsConstraints, ILP\n");*/
     return 0;
 }
 
@@ -484,16 +537,19 @@ int addRowsConstraints(Puzzle *puzzle, GRBmodel *model, GRBenv *env)
     int *ind;
     double *val;
     ind = (int *)calloc(blockNumOfCells, sizeof(int));
+    /*printf("28. calloc int *ind - addRowsConstraints, ILP\n");*/
     if (ind == NULL) /* calloc failed */
     {
         printError(MemoryAllocFailed, NULL, 0, 0);
         exit(0);
     }
     val = (double *)calloc(blockNumOfCells, sizeof(double));
+    /*printf("29. calloc double *val - addRowsConstraints, ILP\n");*/
     if (val == NULL) /* calloc failed */
     {
         printError(MemoryAllocFailed, NULL, 0, 0);
         free(ind);
+        /*printf("28. free int *ind - addRowsConstraints, ILP\n");*/
         exit(0);
     }
     for (row = 1; row < blockNumOfCells + 1; row++)
@@ -513,14 +569,18 @@ int addRowsConstraints(Puzzle *puzzle, GRBmodel *model, GRBenv *env)
             if (addConstraint(model, env, cnt, ind, val, temp) == -1)
             {
                 free(ind);
+                /*printf("28. free int *ind - addRowsConstraints, ILP\n");*/
 				free(val);
+                /*printf("29. free double *val - addRowsConstraints, ILP\n");*/
 				return -1;
             }
             cnt = 0;
         }
     }
     free(ind);
+    /*printf("28. free int *ind - addRowsConstraints, ILP\n");*/
     free(val);
+    /*printf("29. free double *val - addRowsConstraints, ILP\n");*/
     return 0;
 }
 
@@ -534,16 +594,19 @@ int addBlocksConstraints(Puzzle *puzzle, GRBmodel *model, GRBenv *env)
     int *ind;
     double *val;
     ind = (int *)calloc(blockNumOfCells, sizeof(int));
+    /*printf("30. calloc int *imd - addBlocksConstraints, ILP\n");*/
     if (ind == NULL) /* calloc failed */
     {
         printError(MemoryAllocFailed, NULL, 0, 0);
         exit(0);
     }
     val = (double *)calloc(blockNumOfCells, sizeof(double));
+    /*printf("31. calloc double *val - addBlocksConstraints, ILP\n");*/
     if (val == NULL) /* calloc failed */
     {
         printError(MemoryAllocFailed, NULL, 0, 0);
         free(ind);
+        /*printf("30. free int *imd - addBlocksConstraints, ILP\n");*/
         exit(0);
     }
     for (n = 0; n < blockNumOfRows; n++)
@@ -570,7 +633,9 @@ int addBlocksConstraints(Puzzle *puzzle, GRBmodel *model, GRBenv *env)
                 if (addConstraint(model, env, cnt, ind, val, temp) == -1)
                 {
                     free(ind);
+                    /*printf("30. free int *imd - addBlocksConstraints, ILP\n");*/
                     free(val);
+                    /*printf("31. free double *val - addBlocksConstraints, ILP\n");*/
                     return -1;
                 }
                 cnt = 0;
@@ -578,7 +643,9 @@ int addBlocksConstraints(Puzzle *puzzle, GRBmodel *model, GRBenv *env)
         }
     }
     free(ind);
+    /*printf("30. free int *imd - addBlocksConstraints, ILP\n");*/
     free(val);
+    /*printf("31. free double *val - addBlocksConstraints, ILP\n");*/
     return 0;
 }
 
@@ -629,6 +696,7 @@ int findSolution(Puzzle *puzzle, bool isILP, int *numOfVariables, double **solPt
 	/*print("2");*/
 
 	*solPtr = (double *)calloc(*numOfVariables, sizeof(double));
+    /*printf("32. calloc double *solPtr(sol) - findSolution, ILP\n");*/
 	if (*solPtr == NULL) /* calloc failed */
 	{
 		printError(MemoryAllocFailed, NULL, 0, 0);
@@ -757,7 +825,11 @@ int ILPSolvable(Puzzle *puzzle)
 	success = findSolution(puzzle, true, &numOfVariables, &sol);
 	/*print("after findSolution");*/
 	if (sol!=NULL)
-		free(sol);
+    {
+        free(sol);
+        /*printf("32. free double *solPtr(sol) - ILPSolvable, ILP\n");*/
+    }
+		
 	freeVariables(puzzle->blockNumOfCells);
 	/*print("after freeVariables");*/
 	return success;
@@ -801,7 +873,10 @@ Puzzle* ILPSolver(Puzzle *puzzle)
 		fillIntSolution(puzzle, sol, Edit);
 	}
 	if(sol!=NULL)
-		free(sol);
+    {
+        free(sol);
+        /*printf("32. free double *solPtr(sol) - ILPSolver, ILP\n");*/
+    }
 	freeVariables(puzzle->blockNumOfCells);
 	return puzzle;
 }
@@ -814,6 +889,7 @@ Move* fillDblSolution(Puzzle *puzzle, double threshold, double *sol)
     double cellSol;
     int blockNumOfCells = puzzle->blockNumOfCells;
     double *scores = (double *)calloc(blockNumOfCells, sizeof(double));
+    /*printf("33. calloc double *scores - fillDblSolution, ILP\n");*/
     if (scores==NULL)/* calloc failed */
     {
     	printError(MemoryAllocFailed, NULL, 0, 0);
@@ -859,6 +935,7 @@ Move* fillDblSolution(Puzzle *puzzle, double threshold, double *sol)
     }
     /*print("---2");*/
     free(scores);
+    /*printf("33. free double *scores - fillDblSolution, ILP\n");*/
     /*print("---3");*/
     return head;
 }
@@ -892,7 +969,10 @@ Move* LPSolver(Puzzle *puzzle, double threshold)
 	}
 	/*print("e");*/
 	if(sol!=NULL)
-		free(sol);
+    {
+        free(sol);
+        /*printf("32. free double *solPtr(sol) - LPSolver, ILP\n");*/
+    }
 	/*print("f");*/
 	freeVariables(puzzle->blockNumOfCells);
 	/*print("g");*/
@@ -928,7 +1008,10 @@ int LPCellValues(Puzzle *puzzle, int col, int row, double *values)
         }
 	}
 	if(sol!=NULL)
-		free(sol);
+    {
+        free(sol);
+        /*printf("32. free double *solPtr(sol) - LPCellValues, ILP\n");*/
+    }
 	freeVariables(puzzle->blockNumOfCells);
 	return success;
 }
@@ -967,7 +1050,10 @@ int ILPCellSolver(Puzzle *puzzle, int col, int row)
         cellSol = success;
     }
 	if(sol!=NULL)
-		free(sol);
+    {
+        free(sol);
+        /*printf("32. free double *solPtr(sol) - ILPCellSolver, ILP\n");*/
+    }
 	freeVariables(puzzle->blockNumOfCells);
 	return cellSol;
 }
