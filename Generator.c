@@ -48,9 +48,10 @@ void copyBoard(Puzzle* source, int** dest)
  */
 void fillRandPossibleValue(Puzzle *puzzle, int col, int row)
 {
-	int *values = (int*)calloc(puzzle->blockNumOfCells+1, sizeof(int));
 	int randValue, i, counter=0;
 	Move *dummyMove;
+	int *values = (int*)calloc(puzzle->blockNumOfCells+1, sizeof(int));
+	/*printf("10. calloc int *values - fillRandPossibleValue, Generator\n");*/
 
 	if (values==NULL)
 	{
@@ -85,6 +86,7 @@ void fillRandPossibleValue(Puzzle *puzzle, int col, int row)
 					dummyMove=setCell(puzzle, col, row, i, Edit);
 					deleteList(dummyMove);
 					free(values);
+					/*printf("10. free int *values - fillRandPossibleValue, Generator\n");*/
 					return;
 				}
 				counter++;
@@ -92,6 +94,7 @@ void fillRandPossibleValue(Puzzle *puzzle, int col, int row)
 		}
 	}
 	free(values);
+	/*printf("10. free int *values - fillRandPossibleValue, Generator\n");*/
 }
 
 /*
@@ -103,6 +106,7 @@ Move* generate(Puzzle *puzzle, int x, int y){
 	Move *moves=NULL, *dummyMove;
 	bool generateSucceeded=false, xEmptyCellsFilled=true;
 	int **backupBoard=(int**)calloc(N, sizeof(int*));
+	/*printf("11. calloc int **backupBoard - generate, Generator\n");*/
 
 	/* backup current puzzle->board */
 	if (backupBoard==NULL)
@@ -127,6 +131,7 @@ Move* generate(Puzzle *puzzle, int x, int y){
 	for (i=0;i<N;i++)
 	{
 		backupBoard[i]=(int*)calloc(N, sizeof(int));
+		/*printf("12. calloc int *backupBoard[%d] - generate, Generator\n", i);*/
 		if (backupBoard[i]==NULL)
 		{
 			for (j = 0; j < i; j++)
@@ -241,17 +246,18 @@ Move* generate(Puzzle *puzzle, int x, int y){
 	}
 
 
-	for (j = 0; j < N; j++)
-	{
-		free(backupBoard[j]);
-	}
-
-	free(backupBoard);
-
 	if(moves==NULL)
 	{
 		addToList(&moves, 0, 0, 0, 0);
 	}
+
+	for (i=0; i<N; i++)
+	{
+		free(backupBoard[i]);
+		/*printf("12. free int *backupBoard[%d] - generate, Generator\n", i);*/
+	}
+	free(backupBoard);
+	/*printf("11. free int **backupBoard - generate, Generator\n");*/
 
 	return moves;
 }
