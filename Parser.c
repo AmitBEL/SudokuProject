@@ -432,7 +432,10 @@ When several errors exist for the same command, follow this order:
 		}
 		if (solve(param1, Solve))
 		{ /* assumption: change to new game iff new game loading succeeded */
-			mark_errors = last_mark_errors;
+			if (mode==Edit) /* restore mark_errors when return to Solve after Edit */
+			{
+				mark_errors = last_mark_errors;
+			}
 			resetStepsList(); /* moves to the first step and then removes all steps and moves */
 			printBoard(mark_errors);
 			return isBoardCompleted(Solve); /* check if full board loaded */
