@@ -53,6 +53,12 @@ void fillRandPossibleValue(Puzzle *puzzle, int col, int row)
 	int *values = (int*)calloc(puzzle->blockNumOfCells+1, sizeof(int));
 	/*printf("10. calloc int *values - fillRandPossibleValue, Generator\n");*/
 
+	if (values==NULL)
+	{
+		printError(MemoryAllocFailed, NULL, 0, 0);
+		exit(0);
+	}
+
 	/*printf("legal values for <%d,%d>\n", col, row);*/
 
 	values=numOfCellSol(puzzle, col, row, values);
@@ -109,12 +115,30 @@ Move* generate(Puzzle *puzzle, int x, int y){
 		exit(0);
 	}
 
+	/*printf("num of errs: %d\n", puzzle->numOfErroneous);*/
+	if (isBoardErr(puzzle))
+	{
+		if(moves==NULL)
+		{
+			addToList(&moves, 0, 0, 0, 0);
+		}
+		free(backupBoard);
+		return moves;
+	}
+
+	/*printf("after if\n");*/
+
 	for (i=0;i<N;i++)
 	{
 		backupBoard[i]=(int*)calloc(N, sizeof(int));
 		/*printf("12. calloc int *backupBoard[%d] - generate, Generator\n", i);*/
 		if (backupBoard[i]==NULL)
 		{
+			for (j = 0; j < i; j++)
+			{
+				free(backupBoard[j]);
+			}
+			free(backupBoard);
 			printError(MemoryAllocFailed, NULL, 0, 0);
 			exit(0);
 		}
@@ -161,6 +185,7 @@ Move* generate(Puzzle *puzzle, int x, int y){
 		}
 
 		/*printf("filled: %d\n", (xEmptyCellsFilled?1:0));*/
+		/*printCustomBoard(puzzle->board, N, N);*/
 
 		if (xEmptyCellsFilled)
 		{
@@ -170,7 +195,9 @@ Move* generate(Puzzle *puzzle, int x, int y){
 			/*printf("\n\nafter filling board with solution\n\n");*/
 		}
 
-		/*printCustomBoard(puzzle->board, N, N);*/
+		/*printCustomBoard(puzzle->board, N, N);
+		printf("numOfEmptyCells: %d\n", puzzle->numOfEmptyCells);
+		row=scanf("%d", &col);*/
 
 		/* if x empty cells not filled or there is no solution, at least 1 empty cell exists */
 		if (puzzle->numOfEmptyCells==0/* && xEmptyCellsFilled*/)
@@ -217,6 +244,7 @@ Move* generate(Puzzle *puzzle, int x, int y){
 			}
 		}
 	}
+
 
 	if(moves==NULL)
 	{

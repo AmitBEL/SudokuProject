@@ -9,7 +9,7 @@ void printError(ErrorMsg err, char* param1, int bound1, int bound2) {
 	else if (err == IndexOutOfBounds)
 		printf("parameter out of bounds. Bounds: %d-%d", bound1, bound2);
 	else if (err == TooLongInput)
-		printf("max number of characters: %d", MAX_INPUT_CHARS);
+		printf("max number of characters: %d", MAX_INPUT_CHARS-2);
 	else if (err == FunctionFailed)
 		printf("function %s has failed", param1);
 	else if (err == MemoryAllocFailed) {

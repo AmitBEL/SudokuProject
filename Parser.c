@@ -291,6 +291,54 @@ void UpdateMarkErrors(char *value)
 	}
 }
 
+/* check whether str is a double or not */
+bool isDouble(char *str)
+{
+	int i=0, len=strlen(str);
+	bool dotAllowed=true;
+
+	/*printf("len: %d\n", len);*/
+	if (str[len-1]=='\n')
+		len--;
+	/*printf("len: %d\n", len);*/
+
+	for (i=0; i<len; i++)
+	{
+		if (str[i] < '0' || str[i] > '9')
+		{
+			if (dotAllowed && str[i] == '.')
+			{
+				dotAllowed = false;
+			}
+			else
+			{
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
+/* check whether str is an int or not */
+bool isInt(char *str)
+{
+	int i=0, len=strlen(str);
+
+	/*printf("len: %d\n", len);*/
+	if (str[len-1]=='\n')
+			len--;
+	/*printf("len: %d\n", len);*/
+
+	for (i=0; i<len; i++)
+	{
+		if (str[i] < '0' || str[i] > '9')
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
 /* handle user input */
 Mode getCommand(Mode mode)
 {
@@ -384,10 +432,13 @@ When several errors exist for the same command, follow this order:
 		}
 		if (solve(param1, Solve))
 		{ /* assumption: change to new game iff new game loading succeeded */
-			mark_errors = last_mark_errors;
+			if (mode==Edit) /* restore mark_errors when return to Solve after Edit */
+			{
+				mark_errors = last_mark_errors;
+			}
 			resetStepsList(); /* moves to the first step and then removes all steps and moves */
 			printBoard(mark_errors);
-			return isBoardCompleted(Solve);
+			return isBoardCompleted(Solve); /* check if full board loaded */
 		}
 		/* for many failure options, solve function handles its own errors */
 		return mode;
@@ -449,13 +500,13 @@ When several errors exist for the same command, follow this order:
 			if (param1 != NULL && param2 != NULL && param3 != NULL && param4 == NULL)
 			{
 				numOfSuccessfulScan = sscanf(param1, "%d", &x);
-				if (numOfSuccessfulScan == 1 && isNumInRange(x, 1, getBlockNumOfCells()))
+				if (numOfSuccessfulScan == 1 && isInt(param1) && isNumInRange(x, 1, getBlockNumOfCells()))
 				{
 					numOfSuccessfulScan = sscanf(param2, "%d", &y);
-					if (numOfSuccessfulScan == 1 && isNumInRange(y, 1, getBlockNumOfCells()))
+					if (numOfSuccessfulScan == 1 && isInt(param2) && isNumInRange(y, 1, getBlockNumOfCells()))
 					{
 						numOfSuccessfulScan = sscanf(param3, "%d", &z);
-						if (numOfSuccessfulScan == 1 && isNumInRange(z, 0, getBlockNumOfCells())){
+						if (numOfSuccessfulScan == 1 && isInt(param3) && isNumInRange(z, 0, getBlockNumOfCells())){
 							moves = set(x, y, z, mode);
 							if (moves != NULL)
 							{					/* cell is not fixed */
@@ -515,11 +566,10 @@ When several errors exist for the same command, follow this order:
 		if (mode==Solve){
 			if (param1!=NULL && param2==NULL){
 				numOfSuccessfulScan = sscanf(param1, "%lf", &xDouble);
-				if (numOfSuccessfulScan == 1 && 0.0 <= xDouble && xDouble <= 1.0){
+				if (numOfSuccessfulScan == 1 && isDouble(param1) && 0.0 <= xDouble && xDouble <= 1.0){
 					if (!isErroneous()){
 						moves = guess(xDouble);
 						if (moves!=NULL){ /* could not guess any value */
-
 							addStep(moves); /* addStep removes the steps from current move to the end and then updates current.nextStep to moves */
 						}
 						printBoard(mark_errors);
@@ -553,12 +603,12 @@ When several errors exist for the same command, follow this order:
 			if (param1 != NULL && param2 != NULL && param3 == NULL)
 			{
 				numOfSuccessfulScan = sscanf(param1, "%d", &x);
-				if (numOfSuccessfulScan == 1 && isNumInRange(x, 0, numOfEmptyCells()))
+				if (numOfSuccessfulScan == 1 && isInt(param1) && isNumInRange(x, 0, numOfEmptyCells()))
 				{
 					numOfSuccessfulScan = sscanf(param2, "%d", &y);
-					if (numOfSuccessfulScan == 1 && isNumInRange(y, 0, getNumOfCells())){
+					if (numOfSuccessfulScan == 1 && isInt(param2) && isNumInRange(y, 1, getNumOfCells())){
 						moves = generateBoard(x, y);
-						if (moves!=NULL){ /* could not generate board */
+						if (moves->newValue!=0){ /* could not generate board */
 							addStep(moves); /* addStep removes the steps from current move to the end and then updates current.nextStep to moves */
 							printBoard(mark_errors);
 						}
@@ -568,7 +618,7 @@ When several errors exist for the same command, follow this order:
 					}
 					else
 					{
-						printError(ParamOutOfBounds, "2", 0, getNumOfCells());
+						printError(ParamOutOfBounds, "2", 1, getNumOfCells());
 						return mode;
 					}
 				}
@@ -672,10 +722,10 @@ When several errors exist for the same command, follow this order:
 			if (param1 != NULL && param2 != NULL && param3 == NULL)
 			{
 				numOfSuccessfulScan = sscanf(param1, "%d", &x);
-				if (numOfSuccessfulScan == 1 && isNumInRange(x, 1, getBlockNumOfCells()))
+				if (numOfSuccessfulScan == 1 && isInt(param1) && isNumInRange(x, 1, getBlockNumOfCells()))
 				{
 					numOfSuccessfulScan = sscanf(param2, "%d", &y);
-					if (numOfSuccessfulScan == 1 && isNumInRange(y, 1, getBlockNumOfCells()))
+					if (numOfSuccessfulScan == 1 && isInt(param2) && isNumInRange(y, 1, getBlockNumOfCells()))
 					{
 						if (isErroneous())
 						{
@@ -718,10 +768,10 @@ When several errors exist for the same command, follow this order:
 			if (param1 != NULL && param2 != NULL && param3 == NULL)
 			{
 				numOfSuccessfulScan = sscanf(param1, "%d", &x);
-				if (numOfSuccessfulScan == 1 && isNumInRange(x, 1, getBlockNumOfCells()))
+				if (numOfSuccessfulScan == 1 && isInt(param1) && isNumInRange(x, 1, getBlockNumOfCells()))
 				{
 					numOfSuccessfulScan = sscanf(param2, "%d", &y);
-					if (numOfSuccessfulScan == 1 && isNumInRange(y, 1, getBlockNumOfCells()))
+					if (numOfSuccessfulScan == 1 && isInt(param2) && isNumInRange(y, 1, getBlockNumOfCells()))
 					{
 						if (isErroneous())
 						{
