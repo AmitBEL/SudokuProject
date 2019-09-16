@@ -111,6 +111,19 @@ Move* generate(Puzzle *puzzle, int x, int y){
 		exit(0);
 	}
 
+	/*printf("num of errs: %d\n", puzzle->numOfErroneous);*/
+	if (isBoardErr(puzzle))
+	{
+		if(moves==NULL)
+		{
+			addToList(&moves, 0, 0, 0, 0);
+		}
+		free(backupBoard);
+		return moves;
+	}
+
+	/*printf("after if\n");*/
+
 	for (i=0;i<N;i++)
 	{
 		backupBoard[i]=(int*)calloc(N, sizeof(int));
@@ -167,6 +180,7 @@ Move* generate(Puzzle *puzzle, int x, int y){
 		}
 
 		/*printf("filled: %d\n", (xEmptyCellsFilled?1:0));*/
+		/*printCustomBoard(puzzle->board, N, N);*/
 
 		if (xEmptyCellsFilled)
 		{
@@ -176,7 +190,9 @@ Move* generate(Puzzle *puzzle, int x, int y){
 			/*printf("\n\nafter filling board with solution\n\n");*/
 		}
 
-		/*printCustomBoard(puzzle->board, N, N);*/
+		/*printCustomBoard(puzzle->board, N, N);
+		printf("numOfEmptyCells: %d\n", puzzle->numOfEmptyCells);
+		row=scanf("%d", &col);*/
 
 		/* if x empty cells not filled or there is no solution, at least 1 empty cell exists */
 		if (puzzle->numOfEmptyCells==0/* && xEmptyCellsFilled*/)
@@ -224,16 +240,18 @@ Move* generate(Puzzle *puzzle, int x, int y){
 		}
 	}
 
-	if(moves==NULL)
-	{
-		addToList(&moves, 0, 0, 0, 0);
-	}
 
 	for (j = 0; j < N; j++)
 	{
 		free(backupBoard[j]);
 	}
+
 	free(backupBoard);
+
+	if(moves==NULL)
+	{
+		addToList(&moves, 0, 0, 0, 0);
+	}
 
 	return moves;
 }

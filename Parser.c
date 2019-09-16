@@ -567,7 +567,6 @@ When several errors exist for the same command, follow this order:
 					if (!isErroneous()){
 						moves = guess(xDouble);
 						if (moves!=NULL){ /* could not guess any value */
-
 							addStep(moves); /* addStep removes the steps from current move to the end and then updates current.nextStep to moves */
 						}
 						printBoard(mark_errors);
@@ -604,9 +603,9 @@ When several errors exist for the same command, follow this order:
 				if (numOfSuccessfulScan == 1 && isInt(param1) && isNumInRange(x, 0, numOfEmptyCells()))
 				{
 					numOfSuccessfulScan = sscanf(param2, "%d", &y);
-					if (numOfSuccessfulScan == 1 && isInt(param2) && isNumInRange(y, 0, getNumOfCells())){
+					if (numOfSuccessfulScan == 1 && isInt(param2) && isNumInRange(y, 1, getNumOfCells())){
 						moves = generateBoard(x, y);
-						if (moves!=NULL){ /* could not generate board */
+						if (moves->newValue!=0){ /* could not generate board */
 							addStep(moves); /* addStep removes the steps from current move to the end and then updates current.nextStep to moves */
 							printBoard(mark_errors);
 						}
@@ -616,7 +615,7 @@ When several errors exist for the same command, follow this order:
 					}
 					else
 					{
-						printError(ParamOutOfBounds, "2", 0, getNumOfCells());
+						printError(ParamOutOfBounds, "2", 1, getNumOfCells());
 						return mode;
 					}
 				}
