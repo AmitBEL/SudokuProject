@@ -10,6 +10,7 @@
 void addToList(Move ** head, int x, int y, int oldValue, int newValue) {
     Move * new_node;
     new_node = (Move*)malloc(sizeof(Move));
+	/*printf("35. malloc Move *node<%d,%d> - addToList, SingleLinkedList\n", x, y);*/
 
     new_node->x = x;
     new_node->y=y;
@@ -38,7 +39,8 @@ void deleteList(Move *head) {
 
     while (current) {
         next = current->next;
-        free(current);
+        /*printf("35. free Move *node<%d,%d> - addToList, SingleLinkedList\n", current->x, current->y);*/
+		free(current);
         current = next;
     }
 }

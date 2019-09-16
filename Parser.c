@@ -837,8 +837,8 @@ When several errors exist for the same command, follow this order:
 	{ /*17*/
 		if (param1 == NULL)
 		{
-			Exit();
 			resetStepsList();
+			Exit();
 			return mode;
 		}
 		else

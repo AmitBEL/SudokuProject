@@ -62,12 +62,14 @@ int backtrack(Puzzle *puzzle)
 	Cell dummyCell={0,0,0};
 	Cell *cell=&dummyCell;
 	bool success=true, found=false, end = false;
-	Stack *stk = (Stack*)calloc(1, sizeof(Stack));
 	Move *dummyMove;
+	Stack *stk = (Stack*)calloc(1, sizeof(Stack));
+	/*printf("9. calloc Stack *stk - backtrack, Solver\n");*/
 
 	if(puzzle->numOfEmptyCells==0) /* there are not any empty cells */
 	{
 		free(stk);
+		/*printf("9. free Stack *stk - backtrack, Solver\n");*/
 		return 0;
 	}
 
@@ -142,5 +144,6 @@ int backtrack(Puzzle *puzzle)
 	} while (!isEmpty(stk));
 	
 	free(stk);
+	/*printf("9. free Stack *stk - backtrack, Solver\n");*/
 	return cnt;
 }
