@@ -52,6 +52,12 @@ void fillRandPossibleValue(Puzzle *puzzle, int col, int row)
 	int randValue, i, counter=0;
 	Move *dummyMove;
 
+	if (values==NULL)
+	{
+		printError(MemoryAllocFailed, NULL, 0, 0);
+		exit(0);
+	}
+
 	/*printf("legal values for <%d,%d>\n", col, row);*/
 
 	values=numOfCellSol(puzzle, col, row, values);
@@ -78,12 +84,14 @@ void fillRandPossibleValue(Puzzle *puzzle, int col, int row)
 				{
 					dummyMove=setCell(puzzle, col, row, i, Edit);
 					deleteList(dummyMove);
+					free(values);
 					return;
 				}
 				counter++;
 			}
 		}
 	}
+	free(values);
 }
 
 /*
@@ -108,6 +116,11 @@ Move* generate(Puzzle *puzzle, int x, int y){
 		backupBoard[i]=(int*)calloc(N, sizeof(int));
 		if (backupBoard[i]==NULL)
 		{
+			for (j = 0; j < i; j++)
+			{
+				free(backupBoard[j]);
+			}
+			free(backupBoard);
 			printError(MemoryAllocFailed, NULL, 0, 0);
 			exit(0);
 		}
@@ -215,6 +228,12 @@ Move* generate(Puzzle *puzzle, int x, int y){
 	{
 		addToList(&moves, 0, 0, 0, 0);
 	}
+
+	for (j = 0; j < N; j++)
+	{
+		free(backupBoard[j]);
+	}
+	free(backupBoard);
 
 	return moves;
 }

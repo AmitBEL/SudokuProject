@@ -1,6 +1,6 @@
 #ifndef ERRORHANDLER_H_
 #define ERRORHANDLER_H_
-#define MAX_INPUT_CHARS 256
+#define MAX_INPUT_CHARS 258 /* DON'T CHANGE IT, IT'S FOR THE INPUT ARRAY */
 
 typedef enum ErrorMsg {
 	InvalidCommand, IndexOutOfBounds, TooLongInput, FunctionFailed, MemoryAllocFailed,
