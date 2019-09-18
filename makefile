@@ -8,6 +8,7 @@ GUROBI_LIB = -L/usr/local/lib/gurobi563/lib -lgurobi56
 
 $(EXEC): $(OBJS)
 	$(CC) $(OBJS) $(GUROBI_LIB) -o $@ -lm
+all: $(EXEC)
 main.o: main.c Parser.h SPBufferset.h
 	$(CC) $(COMP_FLAG) -c $*.c
 Parser.o: Parser.c Parser.h
