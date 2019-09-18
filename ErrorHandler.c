@@ -2,6 +2,9 @@
 #include <stdlib.h>
 #include "ErrorHandler.h"
 
+/*
+ * Print error message to the user considering the type of the error
+ */
 void printError(ErrorMsg err, char* param1, int bound1, int bound2) {
 	printf("Error: ");
 	if (err == InvalidCommand)

@@ -5,12 +5,14 @@
  * implement all single-linked-list operations
  */
 
-/* insert new single-linked-list node */
-/* pre-condition: in first call *head=NULL */
+/*
+ * insert new single-linked-list node to the start of the list that begins at head
+ * each move contains the coords of the cell that changed and its old and new values
+ * pre-condition: in first call *head=NULL
+ */
 void addToList(Move ** head, int x, int y, int oldValue, int newValue) {
     Move * new_node;
     new_node = (Move*)malloc(sizeof(Move));
-	/*printf("35. malloc Move *node<%d,%d> - addToList, SingleLinkedList\n", x, y);*/
 
     new_node->x = x;
     new_node->y=y;
@@ -20,7 +22,7 @@ void addToList(Move ** head, int x, int y, int oldValue, int newValue) {
     *head = new_node;
 }
 
-/* print list - delete before submission */
+
 void print_list(Move * head) {
 	Move * current = head;
 
@@ -32,14 +34,13 @@ void print_list(Move * head) {
     printf("NULL\n");
 }
 
-/* delete all the list */
+/* delete all the list that begins at head */
 void deleteList(Move *head) {
 	Move  *current = head,
             *next = head;
 
     while (current) {
         next = current->next;
-        /*printf("35. free Move *node<%d,%d> - addToList, SingleLinkedList\n", current->x, current->y);*/
 		free(current);
         current = next;
     }
@@ -70,18 +71,3 @@ void concat(Move** head1, Move** head2) {
 	}
 }
 
-/*
-int main(void) {
-	Move * test_list = NULL;
-
-	push(&test_list, 1);
-	push(&test_list, 2);
-	push(&test_list, 3);
-	push(&test_list, 4);
-    print_list(test_list);
-    delete_list(test_list);
-
-
-    return EXIT_SUCCESS;
-}
-*/

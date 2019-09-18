@@ -11,12 +11,15 @@
  * Doubly Linked List Module - Header
  * define Step (doubly-linked-list node)
  * manage all doubly-linked-list operations
+ * moves - list of the cells that changed in command
+ * next - the next step
+ * prev - the prev step
  */
 
 typedef struct Step {
     Move* moves;
-    struct Step* next; /* Pointer to next node in DLL */
-    struct Step* prev; /* Pointer to previous node in DLL */
+    struct Step* next;
+    struct Step* prev;
 } Step;
 
 void addToDoublyList(Step** head_ref, Move* movesList);

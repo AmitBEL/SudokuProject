@@ -6,7 +6,6 @@
 #include <string.h>
 #include <ctype.h>
 #include "Game.h"
-/*#include "Generator.h"*/
 
 /* 
  * Parser Module - Header

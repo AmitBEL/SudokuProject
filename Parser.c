@@ -39,29 +39,22 @@ void undoAllSteps(Mode mode)
 	while (makeUndo)
 		makeUndo = undo(mode, false);
 
-	/*if (currentMove == NULL)
-		printf("currentMove=NULL\n");
-	else
-		printf("currentMove=<%d,%d>\n", currentMove->moves->x, currentMove->moves->y);*/
-	/*printList(stepsList);*/
 }
 
-/* undo one step */
+/* undo one step
+ * return true if succeeded and false otherwise */
 bool undo(Mode mode, bool printChanges)
 {
 	Move *moves, *dummyMove;
 	bool firstChange = true;
-	if (stepsList == NULL) /* currentMove=NULL too, the list is empty */
+	if (stepsList == NULL)
 		return false;
-	else if (currentMove == NULL) /* user made undo to all steps */
+	else if (currentMove == NULL)
 		return false;
 	else
 	{
 		moves = currentMove->moves;
-		/*if (printChanges)
-		{
-			printf("change:\n");
-		}*/
+
 		while (moves != NULL)
 		{
 			if (moves->x!=0)
@@ -80,23 +73,6 @@ bool undo(Mode mode, bool printChanges)
 			}
 			moves = moves->next;
 
-			/*if (moves->x==0)
-			{
-				if (printChanges)
-				{
-					printf("       no change\n");
-				}
-			}
-			else
-			{
-				if (printChanges)
-				{
-					printf("       cell <%d,%d> from %d to %d\n", moves->x, moves->y, moves->newValue, moves->oldValue);
-				}
-				dummyMove = set(moves->x, moves->y, moves->oldValue, mode);
-				deleteList(dummyMove);
-			}
-			moves = moves->next;*/
 		}
 		/* check if currentMove is not the first */
 		if (currentMove->prev != NULL)
@@ -104,27 +80,24 @@ bool undo(Mode mode, bool printChanges)
 		else
 			currentMove = NULL;
 
-		/*if (currentMove == NULL)
-			printf("currentMove=NULL\n");
-		else
-			printf("currentMove=<%d,%d>\n", currentMove->moves->x, currentMove->moves->y);
-		printList(stepsList);*/
+
 
 		return true;
 	}
 }
 
-/* redo one step */
+/* redo one step
+ * return true if succeeded and false otherwise */
 bool redo(Mode mode)
 {
 	Move *moves, *dummyMove;
 	bool firstChange = true;
-	if (stepsList == NULL) /* currentMove=NULL too, the list is empty */
+	if (stepsList == NULL) 
 		return false;
-	else if (currentMove == NULL) /* user made undo to all steps */
+	else if (currentMove == NULL) 
 	{
 		moves = stepsList->moves;
-		/*printf("change:\n");*/
+
 		while (moves != NULL)
 		{
 			if (moves->x!=0)
@@ -139,32 +112,16 @@ bool redo(Mode mode)
 				deleteList(dummyMove);
 			}
 			
-			/*if(moves->x==0)
-			{
-				printf("       no change\n");
-			}
-			else
-			{
-				printf("       cell <%d,%d> from %d to %d\n", moves->x, moves->y, moves->oldValue, moves->newValue);
-				dummyMove = set(moves->x, moves->y, moves->newValue, mode);
-				deleteList(dummyMove);
-			}*/
 			moves = moves->next;
 		}
 		currentMove = stepsList;
 
-		/*if (currentMove == NULL)
-			printf("currentMove=NULL\n");
-		else
-			printf("currentMove=<%d,%d>\n", currentMove->moves->x, currentMove->moves->y);
-		printList(stepsList);*/
-
 		return true;
 	}
-	else if (currentMove->next != NULL) /* currentMove is not the last step */
+	else if (currentMove->next != NULL) 
 	{
 		moves = currentMove->next->moves;
-		/*printf("change:\n");*/
+
 		while (moves != NULL)
 		{
 			if (moves->x!=0)
@@ -179,25 +136,9 @@ bool redo(Mode mode)
 				deleteList(dummyMove);
 			}
 			
-			/*if (moves->x==0)
-			{
-				printf("       no change\n");
-			}
-			else
-			{
-				printf("       cell <%d,%d> from %d to %d\n", moves->x, moves->y, moves->oldValue, moves->newValue);
-				dummyMove = set(moves->x, moves->y, moves->newValue, mode);
-				deleteList(dummyMove);
-			}*/
 			moves = moves->next;
 		}
 		currentMove = currentMove->next;
-
-		/*if (currentMove == NULL)
-			printf("currentMove=NULL\n");
-		else
-			printf("currentMove=<%d,%d>\n", currentMove->moves->x, currentMove->moves->y);
-		printList(stepsList);*/
 
 		return true;
 	}
@@ -214,43 +155,37 @@ void resetStepsList()
 	stepsList = NULL;
 	currentMove = NULL;
 
-	/*if (currentMove == NULL)
-		printf("currentMove=NULL\n");
-	else
-		printf("currentMove=<%d,%d>\n", currentMove->moves->x, currentMove->moves->y);
-	printList(stepsList);*/
 }
 
 /* delete all steps from current step and add a step to the end of steps list */
 void addStep(Move *moves)
 {
-	if (stepsList == NULL) /* currentMove=NULL too, the list is empty */
+	if (stepsList == NULL) 
 	{
 		addToDoublyList(&stepsList, moves);
 		currentMove = stepsList;
 	}
-	else if (currentMove == NULL) /* user made undo to all steps */
+	else if (currentMove == NULL) 
 	{
 		deleteAllNextNodes(&stepsList, stepsList);
 		deleteNode(&stepsList, stepsList);
 		addToDoublyList(&stepsList, moves);
 		currentMove = stepsList;
 	}
-	else /* stepsList!=NULL && currentMove!=NULL (currentMove is at the end of the list) */
+	else 
 	{
 		deleteAllNextNodes(&stepsList, currentMove);
 		addToDoublyList(&stepsList, moves);
 		currentMove = currentMove->next;
 	}
 
-	/*if (currentMove == NULL)
-		printf("currentMove=NULL\n");
-	else
-		printf("currentMove=<%d,%d>\n", currentMove->moves->x, currentMove->moves->y);
-	printList(stepsList);*/
 }
 
-/* TODO */
+/* TODO to do what??? */
+/*
+ * check if the board is solved
+ * return Init if it is and mode (current mode) otherwise
+ */
 Mode isBoardCompleted(Mode mode)
 {
 	if (mode == Solve && isSolved())
@@ -269,6 +204,7 @@ Mode isBoardCompleted(Mode mode)
 /* 
  * check whether a parameter was supplied to edit command
  * and call the relevant function accordingly
+ * return true if succeeded and false otherwise
  */
 bool EditType(char *optional, Mode mode)
 {
@@ -293,16 +229,17 @@ void UpdateMarkErrors(char *value)
 	}
 }
 
-/* check whether str is a double or not */
+/* check whether str is a double or not
+ * return true if succeeded and false otherwise */
 bool isDouble(char *str)
 {
 	int i=0, len=strlen(str);
 	bool dotAllowed=true;
 
-	/*printf("len: %d\n", len);*/
+
 	if (str[len-1]=='\n')
 		len--;
-	/*printf("len: %d\n", len);*/
+
 
 	for (i=0; i<len; i++)
 	{
@@ -321,15 +258,16 @@ bool isDouble(char *str)
 	return true;
 }
 
-/* check whether str is an int or not */
+/* check whether str is an int or not
+ * return true if succeeded and false otherwise*/
 bool isInt(char *str)
 {
 	int i=0, len=strlen(str);
 
-	/*printf("len: %d\n", len);*/
+
 	if (str[len-1]=='\n')
 			len--;
-	/*printf("len: %d\n", len);*/
+
 
 	for (i=0; i<len; i++)
 	{
@@ -341,7 +279,8 @@ bool isInt(char *str)
 	return true;
 }
 
-/* handle user input */
+/* handle user input
+ * return the mode of the game after successful execution of a command */
 Mode getCommand(Mode mode)
 {
 	char input[MAX_INPUT_CHARS];
@@ -359,8 +298,7 @@ Mode getCommand(Mode mode)
 	 * 4. ignore empty command (also empty lines, because each line is command)
 	 */
 
-	/*if (mode == Init)
-		printf("Welcome sudoku game!");*/
+
 
 	printf("\nEnter a command:\n");
 	/* read all buffer to reset the reader and init the input array */
@@ -389,7 +327,7 @@ Mode getCommand(Mode mode)
 		if (feof(stdin)) /* treat EOF like "exit" */
 			token = "exit";
 		else if (ferror(stdin))
-		{ /* treat error in user input, change later */
+		{ 
 			printError(FunctionFailed, "fgets", 0, 0);
 			return mode;
 		}
@@ -399,31 +337,10 @@ Mode getCommand(Mode mode)
 
 	/* call appropriate function */
 
-	/*****************************
-When several errors exist for the same command, follow this order:
-1. Command name is correct (otherwise it is an invalid command)
-2. Command has the correct number of parameters
-3. Parameters are correct. Report any error of parameter 1 before parameter 2, etc.
-   For each parameter:
-      a. It is in the correct range for the command
-      b. Its value is legal for the current board state
-4. The board is valid for the command (e.g., the board is not erroneous for "autofill").
-5. The command is executed successfully (e.g., "save" command fails writing to the file)
-	 *****************************/
-
 	param1 = strtok(NULL, delimiter);
 	param2 = strtok(NULL, delimiter);
 	param3 = strtok(NULL, delimiter);
 	param4 = strtok(NULL, delimiter);
-
-	/* check if (correct num of param +1)!=NULL to determine if there are too many parameters
-	 * for example, if (correct num of param)=1 and (param1==NULL || (param1!=NULL && param2!=NULL)),
-	 * it means that:
-	 *     a. param1 has not assigned, thus num of params is 0
-	 *     b. param1 has assigned before param2, thus num of params is at least 2
-	 *        (because this is how strtok works. otherwise: param1!=NULL && param2==NULL, thus num of
-	 *        params is 2)
-	 */
 
 	if (strcmp(token, "solve") == 0)
 	{ /*1*/
@@ -433,19 +350,19 @@ When several errors exist for the same command, follow this order:
 			return mode;
 		}
 		if (solve(param1, Solve))
-		{ /* assumption: change to new game iff new game loading succeeded */
+		{ 
 			mark_errors = last_mark_errors;
-			resetStepsList(); /* moves to the first step and then removes all steps and moves */
+			resetStepsList(); 
 			printBoard(mark_errors);
-			return isBoardCompleted(Solve); /* check if full board loaded */
+			return isBoardCompleted(Solve); 
 		}
-		/* for many failure options, solve function handles its own errors */
+
 		return mode;
 	}
 	else if (strcmp(token, "edit") == 0)
 	{ /*2*/
 		if (param1 != NULL && param2 != NULL)
-		{ /* has 0/1 params */
+		{ 
 			printError(WrongNumOfParamsBounds, NULL, 0, 1);
 			return mode;
 		}
@@ -453,11 +370,11 @@ When several errors exist for the same command, follow this order:
 		{
 			last_mark_errors = mark_errors;
 			mark_errors = 1;
-			resetStepsList(); /* moves to the first step and then removes all steps and moves */
+			resetStepsList(); 
 			printBoard(mark_errors);
 			return Edit;
 		}
-		/* for many failure options, EditType function handles its own errors */
+
 		return mode;
 	}
 	else if (strcmp(token, "mark_errors") == 0)
@@ -509,8 +426,8 @@ When several errors exist for the same command, follow this order:
 						if (numOfSuccessfulScan == 1 && isInt(param3) && isNumInRange(z, 0, getBlockNumOfCells())){
 							moves = set(x, y, z, mode);
 							if (moves != NULL)
-							{					/* cell is not fixed */
-								addStep(moves); /* addStep removes the steps from current move to the end and then updates current.nextStep to moves */
+							{
+								addStep(moves);
 							}
 							printBoard(mark_errors);
 							return isBoardCompleted(mode);
@@ -569,8 +486,8 @@ When several errors exist for the same command, follow this order:
 				if (numOfSuccessfulScan == 1 && isDouble(param1) && 0.0 <= xDouble && xDouble <= 1.0){
 					if (!isErroneous()){
 						moves = guess(xDouble);
-						if (moves!=NULL){ /* could not guess any value */
-							addStep(moves); /* addStep removes the steps from current move to the end and then updates current.nextStep to moves */
+						if (moves!=NULL){ 
+							addStep(moves); 
 						}
 						printBoard(mark_errors);
 						return isBoardCompleted(mode);
@@ -608,8 +525,8 @@ When several errors exist for the same command, follow this order:
 					numOfSuccessfulScan = sscanf(param2, "%d", &y);
 					if (numOfSuccessfulScan == 1 && isInt(param2) && isNumInRange(y, 1, getNumOfCells())){
 						moves = generateBoard(x, y);
-						if (moves->newValue!=0){ /* could not generate board */
-							addStep(moves); /* addStep removes the steps from current move to the end and then updates current.nextStep to moves */
+						if (moves->newValue!=0){
+							addStep(moves); 
 							printBoard(mark_errors);
 						}
 						else
@@ -844,7 +761,7 @@ When several errors exist for the same command, follow this order:
 					moves = autoFill(mode);
 					if (moves != NULL)
 					{
-						addStep(moves); /* addStep removes the steps from current move to the end and then updates current.nextStep to moves */
+						addStep(moves); 
 					}
 					printBoard(mark_errors);
 					return isBoardCompleted(mode);

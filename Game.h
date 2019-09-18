@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-/*#include <Math.h>*/
 #include "Solver.h"
 #include "Generator.h"
 

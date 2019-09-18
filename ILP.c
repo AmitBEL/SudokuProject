@@ -5,7 +5,9 @@ int ***variables=NULL;
 
 /* fiil cell <x,y> by randomly choosing a value according to
  * values[] which is the probability
- * if none of the options is ligal don't fill it */
+ * if none of the options is ligal don't fill it
+ * return the cell that changed
+ */
 Move *fillCellAccordingToProb(Puzzle *puzzle, int col, int row, double *valueVsScore)
 {
 	double sum=0, randVal=((rand()%10000)/10000.0);
@@ -19,19 +21,18 @@ Move *fillCellAccordingToProb(Puzzle *puzzle, int col, int row, double *valueVsS
 		/* sum the scores */
 		for (i=0;i<N;i++)
 		{
-			/*printf("i=%d, score=%f\n", i, valueVsScore[i]);*/
+
 			sum+=valueVsScore[i];
 		}
-		/*print("-");*/
+
 		if (sum==0)
 			return NULL;
-		/*printf("sum=%f, randVal=%f\n", sum, randVal);*/
-		/*print("-");*/
+
 		/* change the score of each cell to its relative probability */
 		for (i=0;i<N;i++)
 		{
 			valueVsScore[i]=(valueVsScore[i]/sum);
-			/*printf("i=%d, score=%f\n", i, valueVsScore[i]);*/
+
 		}
 
 		/* choose value randomly */
@@ -42,11 +43,10 @@ Move *fillCellAccordingToProb(Puzzle *puzzle, int col, int row, double *valueVsS
 			sum+=valueVsScore[i];
 			i++; /* when exit the loop, i is the random value */
 		}
-		/*printf("sum=%f, randVal=%f\n", sum, randVal);*/
-		/*printf("chosen value for cell <%d,%d> is %d\n", col, row, i);*/
+
 		/* if the chosen value turns the board to erroneous choose another value */
 		head = setCell(puzzle, col, row, i, Solve);
-		/*print("after setCell");*/
+
 		if (isBoardErr(puzzle))
 		{
 			isBoardErroneous = true;
@@ -192,6 +192,10 @@ void freeVariables(int blockNumOfCells)
     /*printf("15. free int ***variables - freeVariables, ILP\n");*/
 }
 
+/*
+ * check if array of size N contains val
+ * return true if val found, otherwise false
+ */
 bool inArray(int val, double *array, int N)
 {
 	int i=0;
@@ -204,13 +208,16 @@ bool inArray(int val, double *array, int N)
 	return false;
 }
 
+/*
+ * set random array values between 1-N (without repeatations)
+ * N - size of array
+ */
 void randomCoefficients(double *array, int N)
 {
 	int i=0, r=0;
 
 	do
 	{
-		/*printf("i=%d\n", i);*/
         r=(rand()%(N))+1;
 		if (!inArray(r,array,N))
 		{

@@ -98,14 +98,15 @@ void setFillBoard(int x, int y, int newValue) {
 	cell->value = newValue;
 }
 
-/* fill all board according to file fp */
+/* fill all board according to file fp considering mode
+ * return true if succeeded and false otherwise */
 bool fillBoard(FILE* fp, Mode mode) {
 	/* tryScanDot added to avoid unused return parameter of fscanf */
 	int i, j, N=getBlockNumOfCells(), newValue, tryScanDot=1;
 	char c;
 	Cell *cell;
-    int **board=(int**)calloc(N, sizeof(int*));
-    /*printf("1. calloc int **board - fillBoard, Game\n");*/
+	int **board=(int**)calloc(N, sizeof(int*));
+
 
 	if (board==NULL)
 	{
@@ -116,7 +117,6 @@ bool fillBoard(FILE* fp, Mode mode) {
 	for (i=0;i<N;i++)
 	{
 		board[i]=(int*)calloc(N, sizeof(int));
-        /*printf("2. calloc int *board[%d] - fillBoard, Game\n", i);*/
 		if (board[i]==NULL)
 		{
 			printError(MemoryAllocFailed, NULL, 0, 0);
@@ -130,26 +130,21 @@ bool fillBoard(FILE* fp, Mode mode) {
 			if (fscanf(fp, "%d", &newValue)!=1)
 			{
 				for (i=0;i<N;i++)
-                {
-                    free(board[i]);
-                    /*printf("2. free int *board[%d] - fillBoard, Game\n", i);*/
-                }
+				{
+					free(board[i]);
+				}
 				free(board);
-                /*printf("1. free int **board - fillBoard, Game\n");*/
 				return false;
 			}
 			if (!isNumInRange(newValue, 0, N))
 			{
 				for (i=0;i<N;i++)
-                {
-                    free(board[i]);
-                    /*printf("2. free int *board[%d] - fillBoard, Game\n", i);*/
-                }
+				{
+					free(board[i]);
+				}
 				free(board);
-                /*printf("1. free int **board - fillBoard, Game\n");*/
 				return false;
 			}
-			/*printf("%d\n", newValue);*/
 			if (mode==Solve)
 				board[i][j]=newValue;
 			if (newValue!=0) {
@@ -180,16 +175,13 @@ bool fillBoard(FILE* fp, Mode mode) {
 
 	if (mode==Solve)
 	{
-		/* solve C:\\sudoku\\in8.txt should fail */
 		if (isErroneous())
 		{
 			for (i=0;i<N;i++)
-            {
-                free(board[i]);
-                /*printf("2. free int *board[%d] - fillBoard, Game\n", i);*/
-            }
+			{
+				free(board[i]);
+			}
 			free(board);
-            /*printf("1. free int **board - fillBoard, Game\n");*/
 			return false;
 		}
 
@@ -202,18 +194,16 @@ bool fillBoard(FILE* fp, Mode mode) {
 	}
 
 	for (i=0;i<N;i++)
-    {
-        free(board[i]);
-        /*printf("2. free int *board[%d] - fillBoard, Game\n", i);*/
-    }
+        {
+            free(board[i]);
+        }
 	free(board);
-    /*printf("1. free int **board - fillBoard, Game\n");*/
-
 	return true;
 }
 
 /*
- * need to get orig mode and the mode we try to read with
+ * try to load filepath in mode, if failed stay with the same board and origMode
+ * return true if succeeded and false otherwise
  */
 bool load(char* filepath, Mode origMode, Mode mode) {
 	FILE* fp;
@@ -305,8 +295,8 @@ bool load(char* filepath, Mode origMode, Mode mode) {
 }
 
 /*
- * notes:
- * https://moodle.tau.ac.il/mod/forum/discuss.php?d=87711
+ * save current board to filepath considering mode
+ * return true if succeeded and false otherwise
  */
 bool save(char* filepath, Mode mode) {
 	FILE *fp = fopen(filepath, "w");
@@ -338,8 +328,9 @@ bool save(char* filepath, Mode mode) {
 	return true;
 }
 
-/* load puzzle for solve mode 
- * param mode is the orig mode
+/*
+ * load puzzle for solve mode, if fails stay at the same mode
+ * return true if succeeded and false otherwise
  */
 bool solve(char *filepath, Mode mode)
 {
@@ -359,7 +350,6 @@ void createBoard(int blockNumOfRows, int blockNumOfCols)
     puzzle->numOfErroneous = 0;
 
     puzzle->board = (Cell **)calloc(puzzle->blockNumOfCells, sizeof(Cell *));
-    /*printf("3. calloc Cell **puzzle->board - createBoard, Game\n");*/
     if (puzzle->board == NULL) /* calloc failed */
     {
         printError(MemoryAllocFailed, NULL, 0, 0);
@@ -368,23 +358,23 @@ void createBoard(int blockNumOfRows, int blockNumOfCols)
     for (i = 0; i < puzzle->blockNumOfCells; i++)
     {
         puzzle->board[i] = (Cell *)calloc(puzzle->blockNumOfCells, sizeof(Cell));
-        /*printf("4. calloc Cell *puzzle->board[%d] - createBoard, Game\n", i);*/
         if (puzzle->board[i] == NULL) /* calloc failed */
         {
             for (j = 0; j < i; j++)
             {
                 free(puzzle->board[j]);
-                /*printf("4. free Cell *puzzle->board[%d] - createBoard, Game\n", j);*/
             }
             free(puzzle->board);
-            /*printf("3. free Cell **puzzle->board - createBoard, Game\n");*/
             printError(MemoryAllocFailed, NULL, 0, 0);
             exit(0);
         }
     }
 }
 
-/* create new empty 9x9 puzzle */
+/*
+ * create new empty 9x9 puzzle
+ * return true for simpler implementation of caller function
+ */
 bool editNew()
 {
     if (puzzle->board != NULL)
@@ -395,8 +385,9 @@ bool editNew()
     return true;
 }
 
-/* load puzzle for edit mode 
- * param mode is the orig mode
+/*
+ * load puzzle for edit mode, if fails stay at the same mode
+ * return true if succeeded and false otherwise
  */
 bool editFile(char *filepath, Mode mode)
 {
@@ -490,7 +481,7 @@ bool isSolved()
 
 /* return true iff the puzzle is erroneous */
 bool isErroneous() {
-	return isBoardErr(puzzle);/*(puzzle->numOfErroneous > 0 ? true : false);*/
+	return isBoardErr(puzzle);
 }
 
 /* check if the board is solvable */
@@ -769,6 +760,7 @@ void Exit()
  * generates a puzzle by randomly filling x empty cells
  * with legal values, running ILP to solve the board, 
  * and then clearing all but y random cells
+ * return list of cells that changed
  */
 Move* generateBoard(int x, int y)
 {

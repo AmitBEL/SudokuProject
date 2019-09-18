@@ -1,8 +1,11 @@
+/*
+ * This module manages the generating of a new board
+ */
+
 #ifndef GENERATOR_H_
 #define GENERATOR_H_
 
 #include <stdlib.h>
-/*#include <time.h>*/
 #include "ILP.h"
 
 Move* generate(Puzzle *puzzle, int x, int y);
