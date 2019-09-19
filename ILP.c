@@ -419,7 +419,7 @@ int addCellsConstraints(Puzzle *puzzle, GRBmodel *model, GRBenv *env)
 {
     int col, row, k, cnt = 0;
     int blockNumOfCells = puzzle->blockNumOfCells;
-    char temp[20] = {0};
+    char temp[13] = {0};
     int *ind;
     double *val;
     /*print("a");*/
@@ -478,7 +478,7 @@ int addColsConstraints(Puzzle *puzzle, GRBmodel *model, GRBenv *env)
 {
     int row, col, k, cnt = 0;
     int blockNumOfCells = puzzle->blockNumOfCells;
-    char temp[20] = {0};
+    char temp[16] = {0};
     int *ind;
     double *val;
     ind = (int *)calloc(blockNumOfCells, sizeof(int));
@@ -533,7 +533,7 @@ int addRowsConstraints(Puzzle *puzzle, GRBmodel *model, GRBenv *env)
 {
     int row, col, k, cnt = 0;
     int blockNumOfCells = puzzle->blockNumOfCells;
-    char temp[20] = {0};
+    char temp[16] = {0};
     int *ind;
     double *val;
     ind = (int *)calloc(blockNumOfCells, sizeof(int));
@@ -590,7 +590,7 @@ int addBlocksConstraints(Puzzle *puzzle, GRBmodel *model, GRBenv *env)
     int blockNumOfCells = puzzle->blockNumOfCells;
     int blockNumOfCols = puzzle->blockNumCol;
     int blockNumOfRows = puzzle->blockNumRow;
-    char temp[20] = {0};
+    char temp[23] = {0};
     int *ind;
     double *val;
     ind = (int *)calloc(blockNumOfCells, sizeof(int));
